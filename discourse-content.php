@@ -39,7 +39,7 @@ function testeleven_add_discourse_meta_box() {
     'Get Discourse Topic',
     'testeleven_create_fetch_form',
     'discourse_topic',
-    'advanced',
+    'normal',
     'high'
   );
 }
@@ -70,13 +70,14 @@ function testeleven_fetch_discourse_topic() { ?>
           var all_posts_in_topic = '';
 
           topic_posts.forEach(function (topic_post) {
-            all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] + '">Include this post?</label> ' +
-              '<input class="post-select" type="checkbox" name="topic-' + topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
-              '<div class="topic-post">' + topic_post['cooked'] + '</div>' +
-              '</div>';
+            all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
+              '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+              topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
+              '<div class="topic-post">' + topic_post['cooked'] + '</div></div>';
           });
 
-          $('.topic-posts').append(all_posts_in_topic + '<div class="add-topics"><a href="#" class="button" id="add-discourse-topic">Add Topic Posts</a>');
+          $('.topic-posts').append(all_posts_in_topic +
+            '<div class="add-topics"><a href="#" class="button" id="add-discourse-topic">Add Topic Posts</a>');
 
         });
         e.preventDefault();
@@ -84,8 +85,8 @@ function testeleven_fetch_discourse_topic() { ?>
 
       $('#discourse-fetch').on('click', '#add-discourse-topic', function(e) { // Add a nonce to the link and validate it here.
         var output = '';
-        $('.topic-select').each(function() {
-          if ($(this).find('input:checked')) {
+        $.each($('.topic-select'), function() {
+          if ($(this).find('.post-select').attr('checked')) {
             output += $(this).find('.topic-post').html();
           }
         });
