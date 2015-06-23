@@ -1,0 +1,17 @@
+.topic-posts {
+    margin-top: 16px;
+}
+
+.topic-posts .topic-select .topic-excerpt {
+    max-height: 100px;
+    margin-bottom: 16px;
+    overflow: scroll;
+}
+
+.topic-posts .topic-select {
+    padding: 8px;
+}
+
+.topic-posts .topic-select:nth-child(odd) {
+    background-color: #eaeaea;
+}
