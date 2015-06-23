@@ -1,8 +1,5 @@
 .topic-posts {
-    margin-top: 16px;
-}
-
-.topic-posts .topic-select .topic-excerpt {
+    margin: 16px 0;
 }
 
 .topic-posts .topic-select {
@@ -10,5 +7,13 @@
 }
 
 .topic-posts .topic-select:nth-child(odd) {
-    background-color: #eaeaea;
+    background-color: rgba(190, 135, 50, 0.13);
+}
+
+.topic-select label {
+    font-weight: bold;
+}
+
+.add-topics {
+    margin-top: 16px;
 }
