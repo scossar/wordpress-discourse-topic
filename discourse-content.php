@@ -7,23 +7,6 @@
 
 // Create the 'discourse_topic' custom-post-type
 
-function testeleven_discourse_topic() {
-  $labels = array(
-    'name' => 'Discourse Topics',
-    'singular_name' => 'Discourse Topic',
-    'add_new_item' => 'Add New Discourse Topic',
-  );
-  $args = array(
-    'labels' => $labels,
-    'public' => true,
-    'has_archive' => true,
-    'taxonomies' => array('category'),
-    'supports' => array('title', 'editor', 'thumbnail', 'revisions')
-  );
-  register_post_type('discourse_topic', $args);
-}
-
-add_action('init', 'testeleven_discourse_topic');
 
 // Add admin stylesheet
 function testeleven_admin_styles() {
@@ -38,7 +21,7 @@ function testeleven_add_discourse_meta_box() {
     'discourse-fetch',
     'Get Discourse Topic',
     'testeleven_create_fetch_form',
-    'discourse_topic',
+    null,
     'normal',
     'high'
   );
