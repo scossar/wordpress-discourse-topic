@@ -12,7 +12,7 @@ function testeleven_admin_styles() {
 }
 add_action('admin_enqueue_scripts', 'testeleven_admin_styles');
 
-// Add the 'Fetch Discourse Topic' meta-box to the 'discourse_topic' admin panel
+// Add the 'Fetch Discourse Topic' meta-box to the admin page
 
 function testeleven_add_discourse_meta_box() {
   add_meta_box(
