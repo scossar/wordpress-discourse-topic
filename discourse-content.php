@@ -5,8 +5,6 @@
 
 // CORS must be enabled on your Discourse forum for this plugin to work.
 
-// Create the 'discourse_topic' custom-post-type
-
 
 // Add admin stylesheet
 function testeleven_admin_styles() {
