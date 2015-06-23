@@ -23,7 +23,7 @@ function testeleven_discourse_topic() {
 
 add_action('init', 'testeleven_discourse_topic');
 
-// Add a button to the admin panel
+// Add a meta box to the admin panel
 
 function testeleven_add_fetch_button() {
   add_meta_box(

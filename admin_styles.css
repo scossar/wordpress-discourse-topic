@@ -3,9 +3,6 @@
 }
 
 .topic-posts .topic-select .topic-excerpt {
-    max-height: 100px;
-    margin-bottom: 16px;
-    overflow: scroll;
 }
 
 .topic-posts .topic-select {
