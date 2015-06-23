@@ -45,6 +45,8 @@ function testeleven_fetch_discourse_topic() { ?>
           topic_id = $('#discourse-topic-id').val(),
           topic_url = base_url + '/t/' + topic_id + '.json';
 
+        $('.topic-posts').html('');
+
         $.getJSON(topic_url, function (data) {
           var topic_posts = data['post_stream']['posts'];
           var all_posts_in_topic = '';
