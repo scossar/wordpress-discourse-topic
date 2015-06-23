@@ -36,8 +36,7 @@ function testeleven_create_fetch_form() { ?>
 <?php
 }
 
-// The javascript in this function will be written to the footer of the admin page. It should be set so that it is only
-// added to the page if we are dealing with the 'discourse_topic' custom post type.
+// The javascript in this function will be written to the footer of the admin page.
 function testeleven_fetch_discourse_topic() { ?>
   <script>
     jQuery(document).ready(function ($) {
