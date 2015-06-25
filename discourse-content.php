@@ -14,7 +14,7 @@ add_action('admin_enqueue_scripts', 'testeleven_admin_styles');
 function testeleven_add_discourse_meta_box() {
   add_meta_box(
     'discourse-fetch',
-    'Get Discourse Topic',
+    'Load Discourse Topic',
     'testeleven_create_get_topic_form',
      null,
     'normal',
@@ -24,11 +24,9 @@ function testeleven_add_discourse_meta_box() {
 add_action('add_meta_boxes', 'testeleven_add_discourse_meta_box');
 
 function testeleven_create_get_topic_form() {?>
-  <form method="get" action="<?php $_SERVER['PHP_SELF']; ?>">
-    <label for="discourse-base-url">Base URL</label>
-    <input type="text" id="discourse-base-url" value="" name="discourse-base-url"/>
-    <label for="discourse-topic-id">Topic ID</label>
-    <input type="text" id="discourse-topic-id" name="discourse-topic-id"/>
+  <form method="get">
+    <label for="discourse-url">URL:</label>
+    <input type="url" id="discourse-url" name="discourse-url"/>
     <a href="#" class="button get-topic" id="get-topic">Fetch Discourse Topic</a>
   </form>
   <div class="topic-posts"></div>
@@ -41,13 +39,11 @@ function testeleven_get_discourse_topic() {
   <script>
     jQuery(function($) {
       $('#get-topic').click(function (e) {
-        // Add nonce to #discourse-fetch-topic and check here
         var data = {
           'action': 'get_json',
-          'base_url': $('#discourse-base-url').val(),
-          'topic_id': $('#discourse-topic-id').val()
+          'url': $('#discourse-url').val()
         };
-        $.getJSON(ajaxurl, data, function(response) {
+        $.getJSON(ajaxurl, data, function(response, status) {
           var topic_posts = response['post_stream']['posts'];
           var all_posts_in_topic = '';
           var $topic_posts = $('.topic-posts');
@@ -86,9 +82,8 @@ add_action('admin_footer', 'testeleven_get_discourse_topic');
 add_action('wp_ajax_get_json', 'testeleven_get_json');
 
 function testeleven_get_json() {
-  $base_url = $_GET['base_url'];
-  $topic_id = $_GET['topic_id'];
-  $topic_json_url = $base_url . '/t/' . $topic_id . '.json';
+  $url = $_GET['url'];
+  $topic_json_url = $url . '.json';
   $topic_json = file_get_contents($topic_json_url);
   echo $topic_json;
   wp_die();
