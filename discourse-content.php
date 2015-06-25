@@ -27,7 +27,7 @@ function testeleven_create_get_topic_form() {?>
   <form method="get">
     <label for="discourse-url">URL:</label>
     <input type="url" id="discourse-url" name="discourse-url"/>
-    <a href="#" class="button get-topic" id="get-topic">Fetch Discourse Topic</a>
+    <input type="submit" name="get-topic" id="get-topic" value="Fetch Discourse Topic"/>
   </form>
   <div class="topic-posts"></div>
 <?php
@@ -43,21 +43,28 @@ function testeleven_get_discourse_topic() {
           'action': 'get_json',
           'url': $('#discourse-url').val()
         };
-        $.getJSON(ajaxurl, data, function(response, status) {
-          var topic_posts = response['post_stream']['posts'];
-          var all_posts_in_topic = '';
-          var $topic_posts = $('.topic-posts');
+        $.getJSON(ajaxurl, data, function(response) {
+          var error_message = '';
 
-          $topic_posts.html('');
+          if (response) {
+            var topic_posts = response['post_stream']['posts'];
+            var all_posts_in_topic = '';
+            var $topic_posts = $('.topic-posts');
 
-          topic_posts.forEach(function (topic_post) {
-            all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
-            '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
-            topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
-            '<div class="topic-post">' + topic_post['cooked'] + '</div></div>';
-          });
+            $topic_posts.html('');
 
-          $topic_posts.append(all_posts_in_topic);
+            topic_posts.forEach(function (topic_post) {
+              all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
+              '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+              topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
+              '<div class="topic-post">' + topic_post['cooked'] + '</div></div>';
+            });
+            $topic_posts.append(all_posts_in_topic);
+          } else {
+            // Add some better error handling here...
+            error_message = 'There was no response from the server. Please try again with a different url.';
+            $('#discourse-url').addClass('discourse-error').val(error_message);
+          }
         });
         e.preventDefault();
       });
@@ -65,7 +72,7 @@ function testeleven_get_discourse_topic() {
       $('#discourse-fetch').on('change', '.post-select', function(e) {
         var output = '<article class="discourse-topic">'; // If we want to append to the current content of the editor then output should be set to that.
         $.each($('.topic-select'), function() {
-          if ($(this).find('.post-select').attr('checked')) {
+          if ($(this).find('.post-select').prop('checked')) {
             output += '<div class="discourse-post">' + $(this).find('.topic-post').html() + '</div>';
           }
         });
@@ -73,6 +80,11 @@ function testeleven_get_discourse_topic() {
         $('#content').html(output);
         e.preventDefault();
       });
+
+      $('#discourse-fetch').on('click', '.discourse-error', function() {
+        $(this).removeClass('discourse-error').val('');
+      });
+
     });
   </script>
 <?php

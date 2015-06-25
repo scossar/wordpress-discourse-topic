@@ -4,8 +4,17 @@
     margin-bottom: 8px;
 }
 
+#discourse-url.discourse-error {
+    color: #fff;
+    background: orange;
+}
+
 .topic-posts {
-    margin: 16px 0;
+    margin: 16px 8px;
+}
+
+.select-all {
+    margin-left: 8px;
 }
 
 .topic-posts .topic-select {
@@ -16,10 +25,13 @@
     background-color: rgba(190, 135, 50, 0.13);
 }
 
-.topic-select label {
+.topic-select label,
+.select-all label {
     font-weight: bold;
+    margin-right: 5px;
 }
 
 .add-topics {
     margin-top: 16px;
 }
+
