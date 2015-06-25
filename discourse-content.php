@@ -36,6 +36,8 @@ function testeleven_create_fetch_form() { ?>
 <?php
 }
 
+
+
 // The javascript in this function will be written to the footer of the admin page.
 function testeleven_fetch_discourse_topic() { ?>
   <script>
@@ -81,4 +83,34 @@ function testeleven_fetch_discourse_topic() { ?>
 <?php
 }
 
-add_action('admin_footer', 'testeleven_fetch_discourse_topic');
+//add_action('admin_footer', 'testeleven_fetch_discourse_topic');
+
+// Request the Discourse topic on the server
+function testeleven_get_discourse_topic() {
+  ?>
+  <script>
+    jQuery(function($) {
+
+      $('#discourse-fetch-topic').click(function (e) {
+        // Add nonce to #discourse-fetch-topic and check here
+        var data = {
+          'action': 'get_json'
+        };
+        $.getJSON(ajaxurl, data, function(response) {
+          console.log(response);
+        });
+        e.preventDefault();
+      });
+    });
+  </script>
+<?php
+}
+add_action('admin_footer', 'testeleven_get_discourse_topic');
+
+add_action('wp_ajax_get_json', 'testeleven_get_json');
+
+function testeleven_get_json() {
+  $arr = json_encode(["this" => "that"]);
+  echo json_encode($arr);
+  wp_die();
+}
