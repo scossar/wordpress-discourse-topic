@@ -111,7 +111,18 @@ function testeleven_get_discourse_topic() {
         };
         e.preventDefault();
         $.getJSON(ajaxurl, data, function(response) {
-          console.log(response);
+          var topic_posts = response['post_stream']['posts'];
+          var all_posts_in_topic = '';
+
+          topic_posts.forEach(function (topic_post) {
+            all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
+            '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+            topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
+            '<div class="topic-post">' + topic_post['cooked'] + '</div></div>';
+          });
+
+          $('.topic-posts').append(all_posts_in_topic +
+          '<div class="add-topics"><a href="#" class="button" id="add-discourse-topic">Add Topic Posts</a>');
         });
       });
     });
