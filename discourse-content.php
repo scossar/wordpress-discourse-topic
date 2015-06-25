@@ -73,10 +73,11 @@ function testeleven_fetch_discourse_topic() { ?>
 
           $('.topic-posts').append(all_posts_in_topic +
             '<div class="add-topics"><a href="#" class="button" id="add-discourse-topic">Add Topic Posts</a>');
-
         });
         e.preventDefault();
       });
+
+
 
       $('#discourse-fetch').on('click', '#add-discourse-topic', function(e) { // Add a nonce to the link and validate it here.
         var output = '';
@@ -101,7 +102,6 @@ function testeleven_get_discourse_topic() {
   ?>
   <script>
     jQuery(function($) {
-
       $('#get-topic').click(function (e) {
         // Add nonce to #discourse-fetch-topic and check here
         var data = {
@@ -109,7 +109,6 @@ function testeleven_get_discourse_topic() {
           'base_url': $('#discourse-base-url').val(),
           'topic_id': $('#discourse-topic-id').val()
         };
-        e.preventDefault();
         $.getJSON(ajaxurl, data, function(response) {
           var topic_posts = response['post_stream']['posts'];
           var all_posts_in_topic = '';
@@ -124,6 +123,18 @@ function testeleven_get_discourse_topic() {
           $('.topic-posts').append(all_posts_in_topic +
           '<div class="add-topics"><a href="#" class="button" id="add-discourse-topic">Add Topic Posts</a>');
         });
+        e.preventDefault();
+      });
+
+      $('#discourse-fetch').on('change', '.post-select', function(e) {
+        var output = ''; // If we want to append to the current content of the editor then output should be set to that.
+        $.each($('.topic-select'), function() {
+          if ($(this).find('.post-select').attr('checked')) {
+            output += $(this).find('.topic-post').html();
+          }
+        });
+        $('#content').html(output);
+        e.preventDefault();
       });
     });
   </script>
