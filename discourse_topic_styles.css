@@ -1,0 +1,24 @@
+.discourse-topic .post-meta {
+    font-size: 12px;
+    margin-bottom: 4px;
+}
+
+.discourse-topic .username,
+.discourse-topic .post-date {
+    font-weight: bold;
+}
+
+.discourse-post {
+    border-bottom: 1px dotted;
+    padding-bottom: 16px;
+    margin-bottom: 16px;
+}
+
+.discourse-post:last-child {
+    border-bottom: none;
+}
+
+.discourse-post p:last-child {
+    margin-bottom: 0;
+    
+}
