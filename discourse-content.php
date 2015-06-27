@@ -62,6 +62,8 @@ class Testeleven_Discourse_Content {
       jQuery(function($) {
         $('#get-topic').click(function (e) {
           var discourse_url = $('#discourse-url').val();
+          var next_post = 21;
+          var last_post;
           var data = {
             'action': 'get_json',
             'url': discourse_url
@@ -74,8 +76,8 @@ class Testeleven_Discourse_Content {
             var $topic_posts = $('.topic-posts');
             var current_chunk_posts = response['post_stream']['posts'];
             var meta_box_post_content = '';
-            var last_post;
-            var next_post;
+//            var last_post;
+//            var next_post = 0;
 
             // Append the first chunk of posts to .topic-posts
             $topic_posts.html('');
@@ -94,22 +96,23 @@ class Testeleven_Discourse_Content {
             var chunk_posts = response['post_stream']['posts'];
             var num_posts_in_chunk = chunk_posts.length;
             var last_post = chunk_posts[num_posts_in_chunk - 1]['post_number'];
-            var next_post;
             var output = '';
 
             chunk_posts.forEach(function(chunk_post) {
               var post_number = chunk_post['post_number'];
-              output += '<div class="topic-select"><label for="topic-' + post_number +
-              '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
-              post_number + '" value="'+ post_number + '"/>' + '<div class="topic-post">' +
-              '<div class="post-meta">Posted by <span class="username">' + chunk_post['username'] +
-              '<span> on <span class="post-date">' + parse_date(chunk_post['created_at']) + '</span></div>' +
-              chunk_post['cooked'] + '</div></div>';
-            });
+              if (next_post > post_number) {
+                output += '<div class="topic-select"><label for="topic-' + post_number +
+                '">Include this post?'+ post_number + '</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+                post_number + '" value="' + post_number + '"/>' + '<div class="topic-post">' +
+                '<div class="post-meta">Posted by <span class="username">' + chunk_post['username'] +
+                '<span> on <span class="post-date">' + parse_date(chunk_post['created_at']) + '</span></div>' +
+                chunk_post['cooked'] + '</div></div>';
+              }
+              });
             target.append(output);
 
-            if (last_post < post_count) {
-              next_post = last_post + 1;
+            if (last_post <= post_count) {
+              next_post = last_post;
               data = {
                 'action': 'get_json',
                 'url': discourse_url + '/' +  next_post
