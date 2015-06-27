@@ -4,7 +4,7 @@
  * Plugin Author: scossar
  */
 
-class Testeleven_Discourse_Content_Bak {
+class Testeleven_Discourse_Content {
   protected static $instance = null;
 
   public static function get_instance() {
@@ -36,7 +36,7 @@ class Testeleven_Discourse_Content_Bak {
     add_meta_box(
       'discourse-fetch',
       'Load Discourse Topic',
-      array($this, 'create_get_topic_form'),
+       array($this, 'create_get_topic_form'),
        null,
       'normal',
       'high'
@@ -61,61 +61,70 @@ class Testeleven_Discourse_Content_Bak {
     <script>
       jQuery(function($) {
         $('#get-topic').click(function (e) {
+          var discourse_url = $('#discourse-url').val();
+          var next_post = 21;
+          var last_post;
           var data = {
             'action': 'get_json',
-            'url': $('#discourse-url').val()
+            'url': discourse_url
           };
-          $.getJSON(ajaxurl, data, function(response) {
-            var error_message = '';
+          $.getJSON(ajaxurl, data, function (response) {
+            console.log(response);
+            var first_post = 1;
+            var topic_post_count = response['posts_count'];
+            var chunk_post_count = response['post_stream']['posts'].length;
+            var last_post_number = response['post_stream']['posts'][chunk_post_count - 1]['post_number'];
+            var $topic_posts = $('.topic-posts');
+            var current_chunk_posts = response['post_stream']['posts'];
+            var meta_box_post_content = '';
+//            var last_post;
+//            var next_post = 0;
 
-            if (response) {
-              var topic_posts = response['post_stream']['posts'];
-              var all_posts_in_topic = '';
-              var $topic_posts = $('.topic-posts');
+            // Append the first chunk of posts to .topic-posts
+            $topic_posts.html('');
 
-              $topic_posts.html('');
+            add_meta_box_post_content(response, $topic_posts, topic_post_count);
 
-              topic_posts.forEach(function (topic_post) {
-                all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
-                '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
-                topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
-                '<div class="topic-post">' +
-                '<div class="post-meta">Posted by <span class="username">' + topic_post['username'] +
-                '<span> on <span class="post-date">' + parse_date(topic_post['created_at']) + '</span></div>' +
-                topic_post['cooked'] + '</div></div>';
-              });
-              $topic_posts.append(all_posts_in_topic);
-            } else {
-              // Add some better error handling here...
-              error_message = 'There was no response from the server. Please try again with a different url.';
-              $('#discourse-url').addClass('discourse-error').val(error_message);
-            }
           });
-
           e.preventDefault();
 
           function parse_date(date_string) {
             var d = new Date(date_string);
             return d.toLocaleDateString();
           }
-        });
 
-        $('#discourse-fetch').on('change', '.post-select', function(e) {
-          var output = '<section class="discourse-topic">'; // If we want to append to the current content of the editor then output should be set to that.
-          $.each($('.topic-select'), function() {
-            if ($(this).find('.post-select').prop('checked')) {
-              output += '<div class="discourse-post">' + $(this).find('.topic-post').html() + '</div>';
+          function add_meta_box_post_content(response, target, post_count) {
+            var chunk_posts = response['post_stream']['posts'];
+            var num_posts_in_chunk = chunk_posts.length;
+            var last_post = chunk_posts[num_posts_in_chunk - 1]['post_number'];
+            var output = '';
+
+            chunk_posts.forEach(function(chunk_post) {
+              var post_number = chunk_post['post_number'];
+              if (next_post > post_number) {
+                output += '<div class="topic-select"><label for="topic-' + post_number +
+                '">Include this post?'+ post_number + '</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+                post_number + '" value="' + post_number + '"/>' + '<div class="topic-post">' +
+                '<div class="post-meta">Posted by <span class="username">' + chunk_post['username'] +
+                '<span> on <span class="post-date">' + parse_date(chunk_post['created_at']) + '</span></div>' +
+                chunk_post['cooked'] + '</div></div>';
+              }
+              });
+            target.append(output);
+
+            if (last_post <= post_count) {
+              next_post = last_post;
+              data = {
+                'action': 'get_json',
+                'url': discourse_url + '/' +  next_post
+              };
+              $.getJSON(ajaxurl, data, function(response) {
+                add_meta_box_post_content(response, target, post_count);
+              });
             }
-          });
-          output += '</section>';
-          $('#content').html(output);
-          e.preventDefault();
-        });
+          }
 
-        $('#discourse-fetch').on('click', '.discourse-error', function() {
-          $(this).removeClass('discourse-error').val('');
         });
-
       });
     </script>
   <?php
@@ -130,4 +139,4 @@ class Testeleven_Discourse_Content_Bak {
   }
 }
 
-Testeleven_Discourse_Content_Bak::get_instance();
+//Testeleven_Discourse_Content::get_instance();

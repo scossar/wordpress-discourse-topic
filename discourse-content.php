@@ -61,68 +61,80 @@ class Testeleven_Discourse_Content {
     <script>
       jQuery(function($) {
         $('#get-topic').click(function (e) {
-          var discourse_url = $('#discourse-url').val();
-          var next_post = 21;
-          var last_post;
+          var url = $('#discourse-url').val();
+          var initial_url = url + '.json';
+//          var discourse_url = 'https://meta.discourse.org/t/22706/posts.json?post_ids%5B%5D=115880&post_ids%5B%5D=116114&post_ids%5B%5D=121253&post_ids%5B%5D=121322&post_ids%5B%5D=121981&post_ids%5B%5D=122103';
           var data = {
             'action': 'get_json',
-            'url': discourse_url
+            'url': initial_url
           };
+
+          // Use the initial request to gather data about the topic.
           $.getJSON(ajaxurl, data, function (response) {
-            console.log(response);
-            var first_post = 1;
-            var topic_post_count = response['posts_count'];
-            var chunk_post_count = response['post_stream']['posts'].length;
-            var last_post_number = response['post_stream']['posts'][chunk_post_count - 1]['post_number'];
-            var $topic_posts = $('.topic-posts');
-            var current_chunk_posts = response['post_stream']['posts'];
-            var meta_box_post_content = '';
-//            var last_post;
-//            var next_post = 0;
+            var chunk_size = response['chunk_size'];
+            var stream = response['post_stream']['stream'];
+            var $target = $('.topic-posts');
+            // Set the container for the topic content
 
-            // Append the first chunk of posts to .topic-posts
-            $topic_posts.html('');
-
-            add_meta_box_post_content(response, $topic_posts, topic_post_count);
+            $target.html('');
+            add_meta_box_post_content(response, stream, $target);
 
           });
           e.preventDefault();
 
-          function parse_date(date_string) {
-            var d = new Date(date_string);
-            return d.toLocaleDateString();
-          }
 
-          function add_meta_box_post_content(response, target, post_count) {
-            var chunk_posts = response['post_stream']['posts'];
-            var num_posts_in_chunk = chunk_posts.length;
-            var last_post = chunk_posts[num_posts_in_chunk - 1]['post_number'];
+          function add_meta_box_post_content(response, post_stream, target) {
+            console.log(response);
+            var posts = response['post_stream']['posts'];
             var output = '';
+            var current_request;
 
-            chunk_posts.forEach(function(chunk_post) {
-              var post_number = chunk_post['post_number'];
-              if (next_post > post_number) {
-                output += '<div class="topic-select"><label for="topic-' + post_number +
-                '">Include this post?'+ post_number + '</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
-                post_number + '" value="' + post_number + '"/>' + '<div class="topic-post">' +
-                '<div class="post-meta">Posted by <span class="username">' + chunk_post['username'] +
-                '<span> on <span class="post-date">' + parse_date(chunk_post['created_at']) + '</span></div>' +
-                chunk_post['cooked'] + '</div></div>';
-              }
-              });
+            // Append each post to the output string and remove it from the post_stream array.
+            posts.forEach(function(post) {
+              var post_id = post['post_id'];
+              output += '<div class="post-select">' +
+                        '<label for="post-' + post_id + '">Include this post?</label> ' +
+                        '<input class="post-select" type="checkbox" name="post-' + post_id + '" value="' + post_id + '"/>' +
+                        '<div class="topic-post">' +
+                        '<div class="post-meta">' +
+                        'Posted by <span class="username">' + post['username'] +
+                        '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
+                        '</div>' + // .post-meta
+                         post['cooked'] + // post content
+                        '</div>' + // .topic-post
+                        '</div>'; // .post-select
+
+              // Remove the post from the post_stream array.
+              post_stream.shift();
+            });
+
             target.append(output);
 
-            if (last_post <= post_count) {
-              next_post = last_post;
-              data = {
-                'action': 'get_json',
-                'url': discourse_url + '/' +  next_post
-              };
-              $.getJSON(ajaxurl, data, function(response) {
-                add_meta_box_post_content(response, target, post_count);
+            // If there are still posts in post_stream, use them to construct a url. Then make the
+            // ajax call and recursively call the add_meta_box_content() function.
+            if (post_stream.length) {
+              // Get the next chunk of posts.
+              if (post_stream.length > chunk_size) {
+                current_request = post_stream.slice(0, chunk_size);
+              } else {
+                current_request = post_stream;
+              }
+
+              current_request.forEach(id, function() {
+
               });
+
+
             }
-          }
+
+
+            // Make nice dates from the date string -- this could be improved
+            function parse_date(date_string) {
+              var d = new Date(date_string);
+              return d.toLocaleDateString();
+            }
+
+          } // End of add_meta_box_post_content()
 
         });
       });
@@ -132,11 +144,12 @@ class Testeleven_Discourse_Content {
 
   function get_json() {
     $url = $_GET['url'];
-    $topic_json_url = $url . '.json';
-    $topic_json = file_get_contents($topic_json_url);
+//    $topic_json_url = $url . '.json';
+    $topic_json = file_get_contents($url);
     echo $topic_json;
     wp_die();
   }
 }
 
 Testeleven_Discourse_Content::get_instance();
+
