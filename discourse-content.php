@@ -113,6 +113,7 @@ class Testeleven_Discourse_Content {
             // If there are still posts in post_stream, use them to construct a url. Then make the
             // ajax call and recursively call the add_meta_box_content() function.
             if (post_stream.length) {
+              url += '/posts.json?';
               // Get the next chunk of posts.
               if (post_stream.length > chunk_size) {
                 current_request = post_stream.slice(0, chunk_size);
@@ -120,10 +121,21 @@ class Testeleven_Discourse_Content {
                 current_request = post_stream;
               }
 
-              current_request.forEach(id, function() {
-
+              // Construct the url
+              current_request.forEach(function(id, index) {
+                url += 'post_ids%5B%5D=' + id;
+                if (index < current_request.length) {
+                  url += '&';
+                }
               });
 
+              data = {
+                'action': 'get_json',
+                'url': url
+              };
+              $.getJSON(ajaxurl, data, function(response) {
+                add_meta_box_post_content(response, post_stream, target);
+              });
 
             }
 
