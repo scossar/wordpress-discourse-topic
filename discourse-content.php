@@ -80,21 +80,7 @@ class Testeleven_Discourse_Content {
             // Append the first chunk of posts to .topic-posts
             $topic_posts.html('');
 
-            last_post = add_meta_box_post_content(response, $topic_posts);
-
-            if (last_post < topic_post_count) {
-              next_post = last_post + 1;
-              data = {
-                action: 'get_json',
-                'url': discourse_url + '/' +  next_post
-              };
-              $.getJSON(ajaxurl, data, function(response) {
-                last_post = add_meta_box_post_content(response, $topic_posts);
-              });
-            }
-
-            console.log(last_post);
-
+            add_meta_box_post_content(response, $topic_posts, topic_post_count);
 
           });
           e.preventDefault();
@@ -104,10 +90,11 @@ class Testeleven_Discourse_Content {
             return d.toLocaleDateString();
           }
 
-          function add_meta_box_post_content(response, target) {
+          function add_meta_box_post_content(response, target, post_count) {
             var chunk_posts = response['post_stream']['posts'];
             var num_posts_in_chunk = chunk_posts.length;
             var last_post = chunk_posts[num_posts_in_chunk - 1]['post_number'];
+            var next_post;
             var output = '';
 
             chunk_posts.forEach(function(chunk_post) {
@@ -120,8 +107,19 @@ class Testeleven_Discourse_Content {
               chunk_post['cooked'] + '</div></div>';
             });
             target.append(output);
-            return last_post;
+
+            if (last_post < post_count) {
+              next_post = last_post + 1;
+              data = {
+                'action': 'get_json',
+                'url': discourse_url + '/' +  next_post
+              };
+              $.getJSON(ajaxurl, data, function(response) {
+                add_meta_box_post_content(response, target, post_count);
+              });
+            }
           }
+
         });
       });
     </script>
