@@ -69,6 +69,7 @@ class Testeleven_Discourse_Content {
             'url': discourse_url
           };
           $.getJSON(ajaxurl, data, function (response) {
+            console.log(response);
             var first_post = 1;
             var topic_post_count = response['posts_count'];
             var chunk_post_count = response['post_stream']['posts'].length;
