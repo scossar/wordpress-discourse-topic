@@ -4,7 +4,7 @@
  * Plugin Author: scossar
  */
 
-class Testeleven_Discourse_Content {
+class Testeleven_Discourse_Content_Bak {
   protected static $instance = null;
 
   public static function get_instance() {
@@ -61,85 +61,42 @@ class Testeleven_Discourse_Content {
     <script>
       jQuery(function($) {
         $('#get-topic').click(function (e) {
-          var discourse_url = $('#discourse-url').val(),
-              baseurl = get_base_url(discourse_url),
-              path = get_pathname(discourse_url),
-              topic_id = nth_part(path, '/', 2),
-              json_url,
-              data;
+          var data = {
+            'action': 'get_json',
+            'url': $('#discourse-url').val()
+          };
+          $.getJSON(ajaxurl, data, function(response) {
+            var error_message = '';
 
-          if (true) {
-            json_url = baseurl + '//' + path + '.json';
-            var data = {
-              'action': 'get_json',
-              'url': json_url
-            };
-            $.getJSON(ajaxurl, data, function (response) {
-              var error_message = '';
+            if (response) {
+              var topic_posts = response['post_stream']['posts'];
+              var all_posts_in_topic = '';
+              var $topic_posts = $('.topic-posts');
 
-              if (response) {
-                var topic_posts = response['post_stream']['posts'];
-                var all_posts_in_topic = '';
-                var $topic_posts = $('.topic-posts');
+              $topic_posts.html('');
 
-                $topic_posts.html('');
-
-                topic_posts.forEach(function (topic_post) {
-                  all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
-                  '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
-                  topic_post['post_number'] + '" value="' + topic_post['post_number'] + '" checked/>' +
-                  '<div class="topic-post">' +
-                  '<div class="post-meta">Posted by <span class="username">' + topic_post['username'] +
-                  '<span> on <span class="post-date">' + parse_date(topic_post['created_at']) + '</span></div>' +
-                  topic_post['cooked'] + '</div></div>';
-                });
-
-                $topic_posts.append(all_posts_in_topic);
-              } else {
-                // Add some better error handling here...
-                error_message = 'There was no response from the server. Please try again with a different url.';
-                $('#discourse-url').addClass('discourse-error').val(error_message);
-              }
-            });
-          } else {
-            // throw some kind of error
-          }
+              topic_posts.forEach(function (topic_post) {
+                all_posts_in_topic += '<div class="topic-select"><label for="topic-' + topic_post['post_number'] +
+                '">Include this post?</label> ' + '<input class="post-select" type="checkbox" name="topic-' +
+                topic_post['post_number'] + '" value="'+ topic_post['post_number'] + '"/>' +
+                '<div class="topic-post">' +
+                '<div class="post-meta">Posted by <span class="username">' + topic_post['username'] +
+                '<span> on <span class="post-date">' + parse_date(topic_post['created_at']) + '</span></div>' +
+                topic_post['cooked'] + '</div></div>';
+              });
+              $topic_posts.append(all_posts_in_topic);
+            } else {
+              // Add some better error handling here...
+              error_message = 'There was no response from the server. Please try again with a different url.';
+              $('#discourse-url').addClass('discourse-error').val(error_message);
+            }
+          });
 
           e.preventDefault();
 
           function parse_date(date_string) {
             var d = new Date(date_string);
             return d.toLocaleDateString();
-          }
-
-          function get_base_url(url) {
-            var protocol,
-                hostname,
-                tmp = document.createElement('a');
-            tmp.href = url;
-            protocol = tmp.protocol;
-            hostname = tmp.hostname;
-            return protocol + '//' + hostname;
-          }
-
-          function get_pathname(url) {
-            var tmp = document.createElement('a');
-            tmp.href = url;
-            return tmp.pathname;
-          }
-
-          function is_topic_path(path) {
-            var re = /^\/t/;
-            return re.test(path);
-          }
-
-          function nth_part(str, sep, num) {
-            var parts = str.split(sep);
-            if (parts.length > num) {
-              return parts[num];
-            } else {
-              return "this needs to throw some kind of an error!";
-            }
           }
         });
 
@@ -166,10 +123,11 @@ class Testeleven_Discourse_Content {
 
   function get_json() {
     $url = $_GET['url'];
-    $topic_json = file_get_contents($url);
+    $topic_json_url = $url . '.json';
+    $topic_json = file_get_contents($topic_json_url);
     echo $topic_json;
     wp_die();
   }
 }
 
-Testeleven_Discourse_Content::get_instance();
+Testeleven_Discourse_Content_Bak::get_instance();
