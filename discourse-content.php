@@ -62,11 +62,14 @@ class Testeleven_Discourse_Content {
       jQuery(function($) {
         $('#get-topic').click(function (e) {
           var url = $('#discourse-url').val();
-          var initial_url = url + '.json';
-//          var discourse_url = 'https://meta.discourse.org/t/22706/posts.json?post_ids%5B%5D=115880&post_ids%5B%5D=116114&post_ids%5B%5D=121253&post_ids%5B%5D=121322&post_ids%5B%5D=121981&post_ids%5B%5D=122103';
+          var json_url = url + '.json';
+          var base_url = get_base_url(url);
+          var topic_path = get_topic_path(url);
+          var topic_posts_base_url = base_url + topic_path + 'posts.json?';
+          var discourse_url = 'https://meta.discourse.org/t/22706/posts.json?post_ids%5B%5D=115880&post_ids%5B%5D=116114&post_ids%5B%5D=121253&post_ids%5B%5D=121322&post_ids%5B%5D=121981&post_ids%5B%5D=122103';
           var data = {
             'action': 'get_json',
-            'url': initial_url
+            'url': json_url
           };
 
           // Use the initial request to gather data about the topic.
@@ -77,15 +80,15 @@ class Testeleven_Discourse_Content {
             // Set the container for the topic content
 
             $target.html('');
-            add_meta_box_post_content(response, stream, $target);
+            add_meta_box_post_content(response, stream, $target, chunk_size);
 
           });
           e.preventDefault();
 
 
-          function add_meta_box_post_content(response, post_stream, target) {
-            console.log(response);
-            var posts = response['post_stream']['posts'];
+          function add_meta_box_post_content(response, post_stream, target, chunk_size) {
+//            var posts = response['post_stream']['posts'];
+            var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
             var output = '';
             var current_request;
 
@@ -112,8 +115,7 @@ class Testeleven_Discourse_Content {
 
             // If there are still posts in post_stream, use them to construct a url. Then make the
             // ajax call and recursively call the add_meta_box_content() function.
-            if (post_stream.length) {
-              url += '/posts.json?';
+            if (post_stream.length > 0) {
               // Get the next chunk of posts.
               if (post_stream.length > chunk_size) {
                 current_request = post_stream.slice(0, chunk_size);
@@ -123,18 +125,18 @@ class Testeleven_Discourse_Content {
 
               // Construct the url
               current_request.forEach(function(id, index) {
-                url += 'post_ids%5B%5D=' + id;
-                if (index < current_request.length) {
-                  url += '&';
+                topic_posts_base_url += 'post_ids%5B%5D=' + id;
+                if (index < current_request.length - 1) {
+                  topic_posts_base_url += '&';
                 }
               });
 
               data = {
                 'action': 'get_json',
-                'url': url
+                'url': topic_posts_base_url
               };
               $.getJSON(ajaxurl, data, function(response) {
-                add_meta_box_post_content(response, post_stream, target);
+                add_meta_box_post_content(response, post_stream, target, chunk_size);
               });
 
             }
@@ -149,6 +151,29 @@ class Testeleven_Discourse_Content {
           } // End of add_meta_box_post_content()
 
         });
+
+        function get_base_url(url) {
+          var tmp = document.createElement('a'),
+              host,
+              protocol;
+
+          tmp.href = url;
+          host = tmp.hostname;
+          protocol = tmp.protocol;
+
+          return protocol + '//' + host;
+        }
+
+        function get_topic_path(url) {
+          var tmp = document.createElement('a'),
+              path_name,
+              path_parts;
+
+          tmp.href = url;
+          path_name = tmp.pathname;
+          path_parts = path_name.split('/');
+          return '/' + path_parts[1] + '/' + path_parts[3] + '/';
+        }
       });
     </script>
   <?php
