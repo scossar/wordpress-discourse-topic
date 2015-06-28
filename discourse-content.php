@@ -61,30 +61,32 @@ class Testeleven_Discourse_Content {
     <script>
       jQuery(function($) {
         $('#get-topic').click(function (e) {
-          var url = $('#discourse-url').val();
-          var json_url = url + '.json';
-          var base_url = get_base_url(url);
-          var topic_path = get_topic_path(url);
+          var url = $('#discourse-url').val(); // URL input by the user - this should be validated!!!
+          var base_url = get_base_url(url); // http protocol + '//' + host
+          var topic_path = get_topic_path(url); // Removes topic slug from pathname - needed for topic/posts api call
           var topic_posts_base_url = base_url + topic_path + 'posts.json?';
-          var discourse_url = 'https://meta.discourse.org/t/22706/posts.json?post_ids%5B%5D=115880&post_ids%5B%5D=116114&post_ids%5B%5D=121253&post_ids%5B%5D=121322&post_ids%5B%5D=121981&post_ids%5B%5D=122103';
+
+          // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
+          // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here is is calling the
+          // get_json() method which is used to retrieve the json data.
           var data = {
             'action': 'get_json',
-            'url': json_url
+            'url': url + '.json'
           };
 
           // Use the initial request to gather data about the topic.
           $.getJSON(ajaxurl, data, function (response) {
             var chunk_size = response['chunk_size'];
-            var stream = response['post_stream']['stream'];
-            var $target = $('.topic-posts');
-            // Set the container for the topic content
+            var stream = response['post_stream']['stream']; // The array of post_ids in the topic.
+            var $target = $('.topic-posts'); // This is where we are going to output the topic posts.
 
+            // Clear the target in case the form is submitted more than once.
             $target.html('');
+
             add_meta_box_post_content(response, stream, $target, chunk_size);
 
           });
           e.preventDefault();
-
 
           function add_meta_box_post_content(response, post_stream, target, chunk_size) {
 //            var posts = response['post_stream']['posts'];
