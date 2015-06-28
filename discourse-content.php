@@ -89,10 +89,10 @@ class Testeleven_Discourse_Content {
           e.preventDefault();
 
           function add_meta_box_post_content(response, post_stream, target, chunk_size) {
-//            var posts = response['post_stream']['posts'];
+            // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
             var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
             var output = '';
-            var current_request;
+            var current_request_ids;
 
             // Append each post to the output string and remove it from the post_stream array.
             posts.forEach(function(post) {
@@ -120,15 +120,15 @@ class Testeleven_Discourse_Content {
             if (post_stream.length > 0) {
               // Get the next chunk of posts.
               if (post_stream.length > chunk_size) {
-                current_request = post_stream.slice(0, chunk_size);
+                current_request_ids = post_stream.slice(0, chunk_size);
               } else {
-                current_request = post_stream;
+                current_request_ids = post_stream;
               }
 
               // Construct the url
-              current_request.forEach(function(id, index) {
+              current_request_ids.forEach(function(id, index) {
                 topic_posts_base_url += 'post_ids%5B%5D=' + id;
-                if (index < current_request.length - 1) {
+                if (index < current_request_ids.length - 1) {
                   topic_posts_base_url += '&';
                 }
               });
@@ -140,9 +140,7 @@ class Testeleven_Discourse_Content {
               $.getJSON(ajaxurl, data, function(response) {
                 add_meta_box_post_content(response, post_stream, target, chunk_size);
               });
-
             }
-
 
             // Make nice dates from the date string -- this could be improved
             function parse_date(date_string) {
