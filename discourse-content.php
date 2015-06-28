@@ -92,7 +92,8 @@ class Testeleven_Discourse_Content {
             // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
             var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
 //            var load_posts = '<div class="load-posts"><button>Load Posts in Editor</button></div>';
-            var output = '<button class="load-posts">Load Posts in Editor</button>';
+            var output = '<div class="discourse-topic-controls">' +
+              '<input type="text"/> <button class="load-posts">Load Posts in Editor</button>';
             var current_request_ids;
 
             // Append each post to the output string and remove it from the post_stream array.
