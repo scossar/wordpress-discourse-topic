@@ -91,7 +91,8 @@ class Testeleven_Discourse_Content {
           function add_meta_box_post_content(response, post_stream, target, chunk_size) {
             // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
             var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
-            var output = '';
+//            var load_posts = '<div class="load-posts"><button>Load Posts in Editor</button></div>';
+            var output = '<button class="load-posts">Load Posts in Editor</button>';
             var current_request_ids;
 
             // Append each post to the output string and remove it from the post_stream array.
@@ -99,7 +100,7 @@ class Testeleven_Discourse_Content {
               var post_id = post['post_id'];
               output += '<div class="post-select">' +
                         '<label for="post-' + post_id + '">Include this post?</label> ' +
-                        '<input class="post-select" type="checkbox" name="post-' + post_id + '" value="' + post_id + '"/>' +
+                        '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked/>' +
                         '<div class="topic-post">' +
                         '<div class="post-meta">' +
                         'Posted by <span class="username">' + post['username'] +
@@ -150,6 +151,18 @@ class Testeleven_Discourse_Content {
 
           } // End of add_meta_box_post_content()
 
+        });
+
+        $('#discourse-fetch').on('click', '.load-posts', function(e) {
+          var output = '<section class="discourse-topic">';
+          $.each($('.post-select'), function() {
+            if ($(this).find('.post-select-box').prop('checked')) {
+              output += '<div class="discourse-post">' + $(this).find('.topic-post').html() + '</div>';
+            }
+          });
+          output += '</section>';
+          $('#content').html(output);
+          e.preventDefault();
         });
 
         function get_base_url(url) {

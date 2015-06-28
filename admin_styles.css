@@ -21,7 +21,7 @@
     padding: 8px;
 }
 
-.topic-posts .topic-select:nth-child(odd) {
+.topic-posts .post-select:nth-child(odd) {
     background-color: rgba(190, 135, 50, 0.13);
 }
 
