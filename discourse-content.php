@@ -93,7 +93,7 @@ class Testeleven_Discourse_Content {
             var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
 //            var load_posts = '<div class="load-posts"><button>Load Posts in Editor</button></div>';
             var output = '<div class="discourse-topic-controls">' +
-              '<input type="text"/> <button class="load-posts">Load Posts in Editor</button>';
+              '<button class="load-posts">Load Posts in Editor</button>';
             var current_request_ids;
 
             // Append each post to the output string and remove it from the post_stream array.
