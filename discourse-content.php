@@ -195,7 +195,7 @@ class Testeleven_Discourse_Content {
 
 
           num_posts_selected = selected_topic_posts.length;
-          if (num_posts_selected < 30) {
+          if (num_posts_selected < 40) {
 
             output += '<section class="discourse-topic">';
             selected_topic_posts.forEach(function(post_content) {
@@ -206,17 +206,17 @@ class Testeleven_Discourse_Content {
             $('#content').html(output);
 
           } else { // There are more than 20 posts. We will paginate at 20 posts/page.
-            num_pages = Math.ceil(num_posts_selected / 20.0);
+            num_pages = Math.ceil(num_posts_selected / 30.0);
             $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
             // Create an array of pages
-            output = selected_topic_posts.splice(0, 20).join('');
-            $('#content').html(output);
+            output = selected_topic_posts.splice(0, 30).join('');
+            $('#content').html('<h2>Menu for: ' + $('#title').val() + '</h2>');
 
-            for (page_num = 1; page_num <= num_pages; page_num++) {
-              content = selected_topic_posts.splice(0, 20).join('');
+            for (page_num = 0; page_num <= num_pages; page_num++) {
+              content = selected_topic_posts.splice(0, 30).join('');
 
               topic = {
-                'title': $('#title').val() + ' (page ' + page_num + ')',
+                'title': $('#title').val() + ' (page ' + (page_num + 1) + ')',
                 'slug': slug($('#title').val() + ' ' + page_num),
                 'author_id': 1,
                 'content': content,
@@ -315,6 +315,7 @@ class Testeleven_Discourse_Content {
       'post_title' => $_POST['title'],
       'post_status' => $_POST['post_status'],
       'post_type' => $_POST['post_type']
+//      'post_category' => $_POST['post_category']
     );
     $new_post_ID = wp_insert_post($post_data);
 
