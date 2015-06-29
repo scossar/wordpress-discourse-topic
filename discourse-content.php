@@ -206,7 +206,7 @@ class Testeleven_Discourse_Content {
             $('#content').html(output);
 
           } else { // There are more than 20 posts. We will paginate at 20 posts/page.
-            num_pages = Math.ceil(num_posts_selected / 30.0);
+            num_pages = Math.ceil(num_posts_selected / 40.0);
             $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
             // Create an array of pages
             output = selected_topic_posts.splice(0, 30).join('');
