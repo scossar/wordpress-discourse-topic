@@ -77,6 +77,8 @@ class Testeleven_Discourse_Content {
             'url': url + '.json'
           };
 
+          console.log('url: ', data.url);
+
           // Use the initial request to gather data about the topic.
           $.getJSON(ajaxurl, data, function (response) {
             var chunk_size = response['chunk_size'];
@@ -213,6 +215,14 @@ class Testeleven_Discourse_Content {
           } else { // There are more than 20 posts. We will paginate at 20 posts/page.
             num_pages = Math.ceil(num_posts_selected / 20.0);
             $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
+            output += '<section class="discourse-topic">';
+            selected_topic_posts.forEach(function(post_content) {
+              output += '<div class="discourse-post">' + post_content + '</div>';
+            });
+            output += '</section>';
+
+            $('#content').html(output);
+
 
 
           }
@@ -270,7 +280,6 @@ class Testeleven_Discourse_Content {
 
   function get_json() {
     $url = $_GET['url'];
-//    $topic_json_url = $url . '.json';
     $topic_json = file_get_contents($url);
     echo $topic_json;
     wp_die();
