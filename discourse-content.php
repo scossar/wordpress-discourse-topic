@@ -45,6 +45,7 @@ class Testeleven_Discourse_Content {
 
   // add_meta_box callback to create the form
   function create_get_topic_form() {?>
+    <div id="discourse-message"></div>
     <form method="get">
       <label for="discourse-url">URL:</label>
       <input type="url" id="discourse-url" name="discourse-url"/>
@@ -61,10 +62,12 @@ class Testeleven_Discourse_Content {
     <script>
       jQuery(function($) {
         $('#get-topic').click(function (e) {
+          // Outer scope variables
           var url = $('#discourse-url').val(); // URL input by the user - this should be validated!!!
           var base_url = get_base_url(url); // http protocol + '//' + host
           var topic_path = get_topic_path(url); // Removes topic slug from pathname - needed for topic/posts api call
           var topic_posts_base_url = base_url + topic_path + 'posts.json?';
+
 
           // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
           // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here is is calling the
@@ -79,6 +82,9 @@ class Testeleven_Discourse_Content {
             var chunk_size = response['chunk_size'];
             var stream = response['post_stream']['stream']; // The array of post_ids in the topic.
             var $target = $('.topic-posts'); // This is where we are going to output the topic posts.
+
+            set_title(response);
+            console.log(response);
 
             // Clear the target in case the form is submitted more than once.
             $target.html('');
@@ -105,11 +111,11 @@ class Testeleven_Discourse_Content {
 
             // Append each post to the output string and remove it from the post_stream array.
             posts.forEach(function(post) {
-              var post_id = post['post_id'];
+              var post_id = post['id'];
               output.push(
                 '<div class="post-select">' +
                 '<label for="post-' + post_id + '">Include this post?</label> ' +
-                '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked/>' +
+                '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked="checked"/>' +
                 '<div class="topic-post">' +
                 '<div class="post-meta">' +
                 'Posted by <span class="username">' + post['username'] +
@@ -171,35 +177,69 @@ class Testeleven_Discourse_Content {
         // Load posts in the editor
         $('#discourse-fetch').on('click', '.load-posts', function(e) {
           var output = '';
-          output += ('<section class="discourse-topic">');
+//          var num_posts_selected = $('.post-select').find('.post-select-box:checked').length;
+          var num_pages;
+          // An array of all the selected .topic-post divs
+          var selected_topic_posts = [];
+          var num_posts_selected;
           $.each($('.post-select'), function() {
-            var content;
-            if ($(this).find('.post-select-box').prop('checked')) {
-              content = $(this).find('.topic-post').html();
-              output += ('<div class="discourse-post">' + content + '</div>');
-            }
+            if ($(this).find('.post-select-box').prop('checked'));
+            selected_topic_posts.push($(this).find('.topic-post').html());
           });
-          output += ('</section>');
 
-          $('#content').html(output);
+          num_posts_selected = selected_topic_posts.length;
 
+//          console.log(selected_topic_posts);
+
+          // If there are less than 30 posts, load them in the editor -- this value should be configurable.
+          if (num_posts_selected < 30) {
+//            output += ('<section class="discourse-topic">');
+//            $.each($('.post-select'), function() {
+//              var selected_content;
+//              if ($(this).find('.post-select-box').prop('checked')) {
+//                selected_content = $(this).find('.topic-post').html();
+//                output += ('<div class="discourse-post">' + selected_content + '</div>');
+//              }
+//            });
+//            output += ('</section>');
+
+            output += '<section class="discourse-topic">';
+            selected_topic_posts.forEach(function(post_content) {
+              output += '<div class="discourse-post">' + post_content + '</div>';
+            });
+            output += '</section>';
+
+            $('#content').html(output);
+          } else { // There are more than 20 posts. We will paginate at 20 posts/page.
+            num_pages = Math.ceil(num_posts_selected / 20.0);
+            $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
+
+
+          }
           e.preventDefault();
         });
 
-        // Toggle select/unselect all posts
+        // Toggle select/un-select all posts
         $('#discourse-fetch').on('change', '.post-select-toggle', function() {
           if ($(this).hasClass('unselect')) {
-            alert('unselect');
             $(this).toggleClass('unselect select');
+            $('.post-select-box').attr('checked', false);
           } else {
             $(this).toggleClass('select unselect');
+            $('.post-select-box').attr('checked', true);
           }
-
         });
 
 
 
         // Utility functions
+
+        function set_title(response) {
+          if ($('#title').val() === '') {
+            $('#title-prompt-text').css('display', 'none');
+            $('#title').val(response['title']);
+          }
+        }
 
         function get_base_url(url) {
           var tmp = document.createElement('a'),
