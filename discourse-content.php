@@ -183,38 +183,44 @@ class Testeleven_Discourse_Content {
           var num_pages;
           // An array of all the selected .topic-post divs
           var selected_topic_posts = [];
+          // If there are less than 30 posts, load them in the editor -- this value should be configurable.
+          var page_num, post_num, topic = [], content;
           var num_posts_selected;
+
           $.each($('.post-select'), function() {
             if ($(this).find('.post-select-box').prop('checked'));
             selected_topic_posts.push($(this).find('.topic-post').html());
           });
 
+
           num_posts_selected = selected_topic_posts.length;
-
-//          console.log(selected_topic_posts);
-
-          // If there are less than 30 posts, load them in the editor -- this value should be configurable.
           if (num_posts_selected < 30) {
-//            output += ('<section class="discourse-topic">');
-//            $.each($('.post-select'), function() {
-//              var selected_content;
-//              if ($(this).find('.post-select-box').prop('checked')) {
-//                selected_content = $(this).find('.topic-post').html();
-//                output += ('<div class="discourse-post">' + selected_content + '</div>');
-//              }
-//            });
-//            output += ('</section>');
 
             output += '<section class="discourse-topic">';
             selected_topic_posts.forEach(function(post_content) {
               output += '<div class="discourse-post">' + post_content + '</div>';
             });
-            output += '</section>';
 
+            output += '</section>';
             $('#content').html(output);
+
           } else { // There are more than 20 posts. We will paginate at 20 posts/page.
             num_pages = Math.ceil(num_posts_selected / 20.0);
             $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
+            // Create an array of pages
+            for (page_num = 0; page_num <= num_pages; page_num++) {
+              topic.push({
+                'title': $('#title').val() + ' (page ' + page_num + ')',
+                'slug': slug($('#title').val() + ' ' + page_num),
+                'author_id': 1,
+                'content': selected_topic_posts.slice(0, 20).join(''),
+                'post_status': 'publish',
+                'post_type': 'post'
+              });
+            }
+
+            console.log(topic);
+
             output += '<section class="discourse-topic">';
             selected_topic_posts.forEach(function(post_content) {
               output += '<div class="discourse-post">' + post_content + '</div>';
@@ -273,6 +279,14 @@ class Testeleven_Discourse_Content {
           path_parts = path_name.split('/');
           return '/' + path_parts[1] + '/' + path_parts[3] + '/';
         }
+
+        function slug(str) {
+          return str
+            .toLowerCase()
+            .replace(/ /g,'-')
+            .replace(/[^\w-]+/g,'');
+        }
+
       });
     </script>
   <?php
