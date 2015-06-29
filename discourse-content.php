@@ -92,30 +92,43 @@ class Testeleven_Discourse_Content {
             // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
             var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
 //            var load_posts = '<div class="load-posts"><button>Load Posts in Editor</button></div>';
-            var output = '<div class="discourse-topic-controls">' +
-              '<button class="load-posts">Load Posts in Editor</button>';
+            var output = [];
             var current_request_ids;
+
+            output.push(
+              '<div class="discourse-topic-controls clearfix">' +
+                '<label for="post-select-toggle" class="post-select-label">Unselect all Posts</label>' +
+                '<input type="checkbox" class="post-select-toggle unselect" name="post-select-toggle" />' +
+                '<button class="load-posts">Load Posts in Editor</button>' +
+                '</div>'
+            );
 
             // Append each post to the output string and remove it from the post_stream array.
             posts.forEach(function(post) {
               var post_id = post['post_id'];
-              output += '<div class="post-select">' +
-                        '<label for="post-' + post_id + '">Include this post?</label> ' +
-                        '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked/>' +
-                        '<div class="topic-post">' +
-                        '<div class="post-meta">' +
-                        'Posted by <span class="username">' + post['username'] +
-                        '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
-                        '</div>' + // .post-meta
-                         post['cooked'] + // post content
-                        '</div>' + // .topic-post
-                        '</div>'; // .post-select
+              output.push(
+                '<div class="post-select">' +
+                '<label for="post-' + post_id + '">Include this post?</label> ' +
+                '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked/>' +
+                '<div class="topic-post">' +
+                '<div class="post-meta">' +
+                'Posted by <span class="username">' + post['username'] +
+                '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
+                '</div>' + // .post-meta
+                 post['cooked'] + // post content
+                '</div>' + // .topic-post
+                '</div>' // .post-select
+              );
 
               // Remove the post from the post_stream array.
               post_stream.shift();
             });
 
+            output.join('');
             target.append(output);
+
+            // Clear the array
+            output.length = 0;
 
             // If there are still posts in post_stream, use them to construct a url. Then make the
             // ajax call and recursively call the add_meta_box_content() function.
@@ -129,7 +142,8 @@ class Testeleven_Discourse_Content {
 
               // Construct the url
               current_request_ids.forEach(function(id, index) {
-                topic_posts_base_url += 'post_ids%5B%5D=' + id;
+//                topic_posts_base_url += 'post_ids%5B%5D=' + id;
+                topic_posts_base_url += 'post_ids[]=' + id;
                 if (index < current_request_ids.length - 1) {
                   topic_posts_base_url += '&';
                 }
@@ -154,17 +168,38 @@ class Testeleven_Discourse_Content {
 
         });
 
+        // Load posts in the editor
         $('#discourse-fetch').on('click', '.load-posts', function(e) {
-          var output = '<section class="discourse-topic">';
+          var output = '';
+          output += ('<section class="discourse-topic">');
           $.each($('.post-select'), function() {
+            var content;
             if ($(this).find('.post-select-box').prop('checked')) {
-              output += '<div class="discourse-post">' + $(this).find('.topic-post').html() + '</div>';
+              content = $(this).find('.topic-post').html();
+              output += ('<div class="discourse-post">' + content + '</div>');
             }
           });
-          output += '</section>';
+          output += ('</section>');
+
           $('#content').html(output);
+
           e.preventDefault();
         });
+
+        // Toggle select/unselect all posts
+        $('#discourse-fetch').on('change', '.post-select-toggle', function() {
+          if ($(this).hasClass('unselect')) {
+            alert('unselect');
+            $(this).toggleClass('unselect select');
+          } else {
+            $(this).toggleClass('select unselect');
+          }
+
+        });
+
+
+
+        // Utility functions
 
         function get_base_url(url) {
           var tmp = document.createElement('a'),

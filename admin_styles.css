@@ -1,3 +1,14 @@
+.clearfix:after {
+    visibility: hidden;
+    display: block;
+    font-size: 0;
+    content: " ";
+    clear: both;
+    height: 0;
+}
+* html .clearfix             { zoom: 1; } /* IE6 */
+*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+
 #discourse-url {
     width: 100%;
     padding: 7px 10px;
@@ -26,7 +37,8 @@
 }
 
 .topic-select label,
-.select-all label {
+.select-all label,
+.discourse-topic-controls label {
     font-weight: bold;
     margin-right: 5px;
 }
@@ -35,7 +47,18 @@
     margin-top: 16px;
 }
 
+.discourse-topic-controls {
+    width: 100%;
+    margin-bottom: 8px;
+}
+
+.post-select-label,
+.post-select-toggle {
+    display: inline-block;
+    padding-top: 2px;
+}
+
 .load-posts {
     float: right;
-    margin: 8px;
+    /*margin: 8px;*/
 }
