@@ -19,6 +19,7 @@ class Testeleven_Discourse_Content {
     add_action('add_meta_boxes', array($this, 'add_discourse_meta_box'));
     add_action('admin_footer', array($this, 'get_discourse_topic'));
     add_action('wp_ajax_get_json', array($this, 'get_json'));
+    add_action('wp_ajax_create_post', array($this, 'create_post'));
   }
 
   // Add admin stylesheet
@@ -208,26 +209,34 @@ class Testeleven_Discourse_Content {
             num_pages = Math.ceil(num_posts_selected / 20.0);
             $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
             // Create an array of pages
-            for (page_num = 0; page_num <= num_pages; page_num++) {
-              topic.push({
+            output = selected_topic_posts.splice(0, 20).join('');
+            $('#content').html(output);
+
+            for (page_num = 1; page_num <= num_pages; page_num++) {
+              content = selected_topic_posts.splice(0, 20).join('');
+
+              topic = {
                 'title': $('#title').val() + ' (page ' + page_num + ')',
                 'slug': slug($('#title').val() + ' ' + page_num),
                 'author_id': 1,
-                'content': selected_topic_posts.slice(0, 20).join(''),
+                'content': content,
                 'post_status': 'publish',
-                'post_type': 'post'
+                'post_type': 'post',
+                'action': 'create_post'
+              };
+
+              $.post(ajaxurl, topic, function(response) {
+                console.log('we got a response', response);
               });
+
             }
 
-            console.log(topic);
 
-            output += '<section class="discourse-topic">';
-            selected_topic_posts.forEach(function(post_content) {
-              output += '<div class="discourse-post">' + post_content + '</div>';
-            });
-            output += '</section>';
+//            output += '<section class="discourse-topic">';
+//            output += topic[0].content;
+//            output += '</section>';
 
-            $('#content').html(output);
+//            $('#content').html(output);
 
 
 
@@ -298,6 +307,26 @@ class Testeleven_Discourse_Content {
     echo $topic_json;
     wp_die();
   }
+
+  function create_post() {
+    $post_data = array(
+      'post_content' => $_POST['content'],
+      'post_name' => $_POST['slug'],
+      'post_title' => $_POST['title'],
+      'post_status' => $_POST['post_status'],
+      'post_type' => $_POST['post_type']
+    );
+    $new_post_ID = wp_insert_post($post_data);
+
+    // Send a response back to the javascript handler
+    $response = array(
+      'status' => '200',
+      'message' => 'OK',
+      'new_post_ID' => $new_post_ID
+    );
+    wp_die();
+  }
+
 }
 
 Testeleven_Discourse_Content::get_instance();
