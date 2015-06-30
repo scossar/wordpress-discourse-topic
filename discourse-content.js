@@ -18,16 +18,11 @@ jQuery(document).ready(function($) {
       'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
     }
 
-    console.log('base url: ', base_url);
-
-    // If there has been an error, clear the error message when the user inputs a
-    // new URL.
+    // If there has been an error, clear the error message when the user inputs a new URL.
     clear_message_on_click($('#discourse-url'));
 
-
-
     // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
-    // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here is is calling the
+    // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
     // get_json() method which is used to retrieve the json data.
     var data = {
       'action': 'get_json',
@@ -36,26 +31,34 @@ jQuery(document).ready(function($) {
 
     // Use the initial request to gather data about the topic.
     $.getJSON(ajaxurl, data, function (response) {
-      var chunk_size = response['chunk_size'];
-      var stream = response['post_stream']['stream']; // The array of post_ids in the topic.
-      var $target = $('.topic-posts'); // This is where we are going to output the topic posts.
 
+      if (! response) { // This needs better (more descriptive) error checking.
+        $('#discourse-message').addClass('warning');
+        $('#discourse-message').html('There was no response returned from the server. ' +
+          'It is possible that you have incorrectly entered the forum URL. The server ' +
+          'may also be undergoing maintenance. If the problem persists, please contact ' +
+          'the forum administrator.');
+        return;
+      }
+
+      var chunk_size = response['chunk_size'],
+          stream = response['post_stream']['stream'], // The array of post_ids in the topic.
+          $target = $('.topic-posts'); // This is where we are going to output the topic posts.
+
+      // Set the title in the editor
       set_title(response);
-      console.log(response);
 
       // Clear the target in case the form is submitted more than once.
       $target.html('');
 
       add_meta_box_post_content(response, stream, $target, chunk_size);
-
     });
 
     function add_meta_box_post_content(response, post_stream, target, chunk_size) {
       // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
-      var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'];
-//            var load_posts = '<div class="load-posts"><button>Load Posts in Editor</button></div>';
-      var output = [];
-      var current_request_ids;
+      var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'],
+          output = [],
+          current_request_ids;
 
       output.push(
         '<div class="discourse-topic-controls clearfix">' +
@@ -65,13 +68,14 @@ jQuery(document).ready(function($) {
         '</div>'
       );
 
-      // Append each post to the output string and remove it from the post_stream array.
+      // Push each post onto the output array and shift it from the post_stream array.
+      // The post_id value isn't being used for anything.
       posts.forEach(function(post) {
         var post_id = post['id'];
         output.push(
           '<div class="post-select">' +
           '<label for="post-' + post_id + '">Include this post?</label> ' +
-          '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" value="' + post_id + '" checked="checked"/>' +
+          '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" ' + '" checked="checked"/>' +
           '<div class="topic-post">' +
           '<div class="post-meta">' +
           'Posted by <span class="username">' + post['username'] +
@@ -115,31 +119,21 @@ jQuery(document).ready(function($) {
           'action': 'get_json',
           'url': post_request_url
         };
+
         $.getJSON(ajaxurl, data, function(response) {
           add_meta_box_post_content(response, post_stream, target, chunk_size);
         });
       }
-
-      // Make nice dates from the date string -- this could be improved
-      function parse_date(date_string) {
-        var d = new Date(date_string);
-        return d.toLocaleDateString();
-      }
-
     } // End of add_meta_box_post_content() */
 
-    e.preventDefault();
-    return false;
+    e.preventDefault(); // Don't reload the page.
   });
 
   // Load posts in the editor
   $('#discourse-fetch').on('click', '.load-posts', function(e) {
-    var output = '';
-//          var num_posts_selected = $('.post-select').find('.post-select-box:checked').length;
-    var num_pages;
-    // An array of all the selected .topic-post divs
-    var selected_topic_posts = [];
-    // If there are less than 30 posts, load them in the editor -- this value should be configurable.
+    var output = '',
+        num_pages,
+        selected_topic_posts = [];
     var page_num, post_num, topic = [], content;
     var num_posts_selected;
 
@@ -147,7 +141,6 @@ jQuery(document).ready(function($) {
       if ($(this).find('.post-select-box').prop('checked'));
       selected_topic_posts.push($(this).find('.topic-post').html());
     });
-
 
     num_posts_selected = selected_topic_posts.length;
     if (num_posts_selected < 40) {
@@ -183,7 +176,6 @@ jQuery(document).ready(function($) {
         $.post(ajaxurl, topic, function(response) {
           console.log('we got a response', response);
         });
-
       }
     }
     e.preventDefault();
@@ -191,14 +183,17 @@ jQuery(document).ready(function($) {
 
   // Toggle select/un-select all posts
   $('#discourse-fetch').on('change', '.post-select-toggle', function() {
+    var $post_select_box = $('.post-select-box');
     if ($(this).hasClass('unselect')) {
       $(this).toggleClass('unselect select');
-      $('.post-select-box').attr('checked', false);
+      $post_select_box.attr('checked', false);
     } else {
       $(this).toggleClass('select unselect');
-      $('.post-select-box').attr('checked', true);
+      $post_select_box.attr('checked', true);
     }
   });
+
+  // Utility functions
 
   // Clear the message box and remove its classes when $target is clicked.
   function clear_message_on_click($target) {
@@ -207,39 +202,13 @@ jQuery(document).ready(function($) {
     });
   }
 
-  // Utility functions
-
   function set_title(response) {
-    if ($('#title').val() === '') {
+    var $title = $('#title');
+    if ($title.val() === '') {
       $('#title-prompt-text').css('display', 'none');
-      $('#title').val(response['title']);
+      $title.val(response['title']);
     }
   }
-
-  function get_base_url(url) {
-    var tmp = document.createElement('a'),
-      host,
-      protocol,
-      topic_id;
-
-    tmp.href = url;
-    host = tmp.hostname;
-    protocol = tmp.protocol;
-    topic_id = get_topic_id(url);
-
-    return protocol + '//' + host + '/t/' + topic_id;
-  }
-
-  //function get_topic_path(url) {
-  //  var tmp = document.createElement('a'),
-  //    path_name,
-  //    path_parts;
-  //
-  //  tmp.href = url;
-  //  path_name = tmp.pathname;
-  //  path_parts = path_name.split('/');
-  //  return '/' + path_parts[1] + '/' + path_parts[3] + '/';
-  //}
 
   function get_url_path(url) {
     var tmp = document.createElement('a');
@@ -264,6 +233,19 @@ jQuery(document).ready(function($) {
     }
   }
 
+  function get_base_url(url) {
+    var tmp = document.createElement('a'),
+      host,
+      protocol,
+      topic_id;
+
+    tmp.href = url;
+    host = tmp.hostname;
+    protocol = tmp.protocol;
+    topic_id = get_topic_id(url);
+
+    return protocol + '//' + host + '/t/' + topic_id;
+  }
 
   function slug(str) {
     return str
@@ -272,4 +254,9 @@ jQuery(document).ready(function($) {
       .replace(/[^\w-]+/g,'');
   }
 
+  // Make nice dates from the date string -- this could be improved
+  function parse_date(date_string) {
+    var d = new Date(date_string);
+    return d.toLocaleDateString();
+  }
 });
