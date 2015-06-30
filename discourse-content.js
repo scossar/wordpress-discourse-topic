@@ -191,27 +191,6 @@ jQuery(document).ready(function($) {
 
         e.preventDefault();
       });
-      //Add the first 40 posts to the current page.
-      //output = selected_topic_posts.splice(0, 40).join('');
-      //$('#content').html(output);
-      //
-/*      for (page_num = 1; page_num <= num_pages; page_num++) {
-        content = selected_topic_posts.splice(0, 40).join('');
-
-        topic = {
-          'title': $title.val() + ' (page ' + (page_num + 1) + ')',
-          'slug': slug($title.val() + ' ' + page_num),
-          'author_id': 1,
-          'content': content,
-          'post_status': 'publish',
-          'post_type': 'post',
-          'action': 'create_post'
-        };
-
-        $.post(ajaxurl, topic, function(response) {
-          console.log('we got a response', response);
-        });
-      } */
     }
     e.preventDefault();
   });
