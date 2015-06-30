@@ -87,13 +87,13 @@ class Testeleven_Discourse_Content {
     $new_post_ID = wp_insert_post($post_data);
 
     // Send a response back to the javascript handler
-    $response = array(
-      'status' => '200',
-      'message' => 'OK',
-      'new_post_ID' => $new_post_ID
-    );
+//    $response = array(
+//      'status' => '200',
+//      'message' => 'OK',
+//      'new_post_ID' => $new_post_ID
+//    );
 
-    echo $response;
+//    echo $response;
     wp_die();
   }
 }

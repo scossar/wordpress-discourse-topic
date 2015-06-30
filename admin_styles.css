@@ -26,8 +26,7 @@
 }
 
 #discourse-message.notice {
-    color: #fff;
-    background: #006400;
+    background: #DAEDDA;
     font-weight: bold;
 }
 

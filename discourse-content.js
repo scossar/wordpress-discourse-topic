@@ -13,7 +13,7 @@ jQuery(document).ready(function($) {
       // Create your urls here
       base_url = get_base_url(url);
       initial_request_url = base_url + '.json';
-      post_request_url = base_url + '/' + 'posts.json?';
+      post_request_url = base_url + '/' + 'posts.json';
     } else {
       warning('The supplied URL is not a Discourse topic URL. ' +
         'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
@@ -21,6 +21,9 @@ jQuery(document).ready(function($) {
 
     // If there has been an error, clear the error message when the user inputs a new URL.
     clear_message_on_click($discourse_url);
+
+    // add .discourse-loading to the body
+    $('body').addClass('discourse-loading');
 
     // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
     // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
@@ -41,8 +44,10 @@ jQuery(document).ready(function($) {
       }
 
       var chunk_size = response['chunk_size'],
-          stream = response['post_stream']['stream'], // The array of post_ids in the topic.
+          stream = response['post_stream']['stream'].slice(chunk_size), // The array of post_ids in the topic.
           $target = $('.topic-posts'); // This is where we are going to output the topic posts.
+
+      console.log('chunk-size: ', chunk_size);
 
       // Set the title in the editor
       set_title(response);
@@ -55,51 +60,39 @@ jQuery(document).ready(function($) {
 
     function add_meta_box_post_content(response, post_stream, target, chunk_size) {
       // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
-      var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'],
+      //var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'],
+      var posts = response['post_stream']['posts'],
           output = [],
-          current_request_ids;
+          next_request_ids = post_stream.splice(0, chunk_size),
+          next_request_params = '?',
+          next_request_url;
 
-      output.push(
-        '<div class="discourse-topic-controls clearfix">' +
-        //'<label for="post-select-toggle" class="post-select-label">Unselect all Posts</label>' +
-        '<button class="unselect-all-posts">Unselect all Posts</button>' +
-        '<button class="select-all-posts">Select all Posts</button>' +
-        //'<input type="checkbox" class="post-select-toggle unselect" name="post-select-toggle" />' +
-        '<button class="load-posts">Load Posts in Editor</button>' +
-        '</div>'
-      );
+      target.append(render(posts));
 
-      // Push each post onto the output array and shift it from the post_stream array.
-      // The post_id value isn't being used for anything.
-      posts.forEach(function(post) {
-        var post_id = post['id'];
-        output.push(
-          '<div class="post-select">' +
-          '<label for="post-' + post_id + '">Include this post?</label> ' +
-          '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" ' + '" checked="checked"/>' +
-          '<div class="topic-post">' +
-          '<div class="post-meta">' +
-          'Posted by <span class="username">' + post['username'] +
-          '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
-          '</div>' + // .post-meta
-          post['cooked'] + // post content
-          '</div>' + // .topic-post
-          '</div>' // .post-select
-        );
+      if (next_request_ids.length) {
+        next_request_ids.forEach(function(id, index) {
+          next_request_params += 'post_ids[]=' + id;
+          if (index < next_request_ids.length - 1) {
+            next_request_params += '&';
+          }
+        });
+        next_request_url = post_request_url + encodeURI(next_request_params);
+        console.log(next_request_url);
+      }
 
-        // Remove the post from the post_stream array.
-        post_stream.shift();
+      data = {
+        'action': 'get_json',
+        'url': next_request_url
+      };
+
+      $.getJSON(ajaxurl, data, function(response) {
+        add_meta_box_post_content(response, post_stream, target, chunk_size);
       });
 
-      output.join('');
-      target.append(output);
-
-      // Clear the array
-      output.length = 0;
 
       // If there are still posts in post_stream, use them to construct a url. Then make the
       // ajax call and recursively call the add_meta_box_content() function.
-      if (post_stream.length > 0) {
+/*      if (post_stream.length) {
         // Get the next chunk of posts.
         if (post_stream.length > chunk_size) {
           current_request_ids = post_stream.slice(0, chunk_size);
@@ -109,12 +102,15 @@ jQuery(document).ready(function($) {
 
         // Construct the url
         current_request_ids.forEach(function(id, index) {
-//                topic_posts_base_url += 'post_ids%5B%5D=' + id;
-          post_request_url += 'post_ids[]=' + id;
+        //  post_request_params += 'post_ids=[' + selected_ids + ']';
+          //post_request_url += 'post_ids%5B%5D=' + id;
+          post_request_params += 'post_ids[]=' + id;
           if (index < current_request_ids.length - 1) {
-            post_request_url += '&';
+            post_request_params += '&';
           }
         });
+        post_request_url += encodeURI(post_request_params);
+        //console.log("request", post_request_url);
 
         data = {
           'action': 'get_json',
@@ -124,7 +120,46 @@ jQuery(document).ready(function($) {
         $.getJSON(ajaxurl, data, function(response) {
           add_meta_box_post_content(response, post_stream, target, chunk_size);
         });
-      }
+      } */
+
+      function render(posts) {
+        var output = [];
+
+        output.push(
+          '<div class="discourse-topic-controls clearfix">' +
+            //'<label for="post-select-toggle" class="post-select-label">Unselect all Posts</label>' +
+          '<button class="unselect-all-posts">Unselect all Posts</button>' +
+          '<button class="select-all-posts">Select all Posts</button>' +
+            //'<input type="checkbox" class="post-select-toggle unselect" name="post-select-toggle" />' +
+          '<button class="load-posts">Load Posts in Editor</button>' +
+          '</div>'
+        );
+
+        posts.forEach(function(post) {
+          var post_id = post['id'];
+          output.push(
+            '<div class="post-select">' +
+            '<label for="post-' + post_id + '">Include this post?</label> ' +
+            '<input class="post-select-box" type="checkbox" name="post-' + post_id + '" ' + '" checked="checked"/>' +
+            '<div class="topic-post">' +
+            '<div class="discourse-post">' +
+            '<div class="post-meta">' +
+            'Posted by <span class="username">' + post['username'] +
+            '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
+            '<h1 class="post-num">' + post['post_number'] + '</h1>' +
+            '</div>' + // .post-meta
+            post['cooked'] + // post content
+            '</div>' + // .discourse-post
+            '</div>' + // .topic-post
+            '</div>' // .post-select
+          );
+        });
+
+        output.join('');
+        return output;
+      } // End of render()
+
+
     } // End of add_meta_box_post_content() */
 
     e.preventDefault(); // Don't reload the page.
@@ -141,6 +176,7 @@ jQuery(document).ready(function($) {
         content,
         num_posts_selected;
 
+    // Load all the content in an array
     $.each($('.post-select'), function() {
       if ($(this).find('.post-select-box').prop('checked')) {
         selected_topic_posts.push($(this).find('.topic-post').html());
@@ -148,18 +184,19 @@ jQuery(document).ready(function($) {
     });
 
     num_posts_selected = selected_topic_posts.length;
-    if (num_posts_selected < 45) {
 
-      output += '<section class="discourse-topic">';
-      selected_topic_posts.forEach(function(post_content) {
-        output += '<div class="discourse-post">' + post_content + '</div>';
-      });
+    if (num_posts_selected < 20) {
 
-      output += '</section>';
-      $('#content').html(output);
+      //output += '<section class="discourse-topic">';
+      //selected_topic_posts.forEach(function(post_content) {
+      //  output += post_content;
+      //});
+
+      //output += '</section>';
+      $('#content').html(selected_topic_posts.join(''));
 
     } else { // There are more than 40 posts. We will paginate at 40 posts/page.
-      num_pages = Math.ceil(num_posts_selected / 40.0);
+      num_pages = Math.ceil(num_posts_selected / 20);
 
       notice('<div class="warn">You have selected ' +
         num_posts_selected + ' posts in this topic. For improved readability, ' +
@@ -168,11 +205,11 @@ jQuery(document).ready(function($) {
         '</button></div>', 'notice');
 
       $discourse_fetch.on('click', '.publish-topic', function(e) {
-        output = selected_topic_posts.splice(0, 40).join('');
+        output = selected_topic_posts.splice(0, 20).join('');
         $('#content').html(output);
 
         for (page_num = 1; page_num < num_pages; page_num++) {
-          content = selected_topic_posts.splice(0, 40).join('');
+          content = selected_topic_posts.splice(0, 20).join('');
 
           topic = {
             'title': $title.val() + ' (page ' + (page_num + 1) + ')',
