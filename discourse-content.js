@@ -5,6 +5,7 @@ jQuery(document).ready(function($) {
 
     var $discourse_url = $('#discourse-url'),
         url = $discourse_url.val(),
+        absolute_url,
         base_url,
         initial_request_url,
         post_request_url;
@@ -18,6 +19,7 @@ jQuery(document).ready(function($) {
 
     } else {
       // It's looking good, set the url values and try making a request.
+      absolute_url = get_absolute_url_base(url); // Used for fixing relative links
       base_url = get_base_url(url);
       initial_request_url = base_url + '.json';
       post_request_url = base_url + '/' + 'posts.json';
@@ -120,7 +122,9 @@ jQuery(document).ready(function($) {
         );
 
         posts.forEach(function(post) {
-          var post_id = post['id'];
+          var post_id = post['id'],
+              avatar_link = fix_avatar_link(post['avatar_template'], absolute_url);
+
           output.push(
             '<div class="post-select">' +
             '<label for="post-' + post_id + '">Include this post?</label> ' +
@@ -128,9 +132,9 @@ jQuery(document).ready(function($) {
             '<div class="topic-post">' +
             '<div class="discourse-post">' +
             '<div class="post-meta">' +
+            '<div class="avatar"><img src="' + avatar_link + '" alt="missing avatar" width="45"/></div>' +
             'Posted by <span class="username">' + post['username'] +
             '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
-            '<h1 class="post-num">' + post['post_number'] + '</h1>' +
             '</div>' + // .post-meta
             post['cooked'] + // post content
             '</div>' + // .discourse-post
@@ -225,9 +229,6 @@ jQuery(document).ready(function($) {
   // If there has been an error, clear the error message when the user inputs a new URL.
   clear_message_on_click($('#discourse-url'));
 
-  // Show spinner and disable page while posts are loading.
-
-
   // Utility functions
 
   // Clear the message box and remove its classes when $target is clicked.
@@ -282,6 +283,18 @@ jQuery(document).ready(function($) {
     return protocol + '//' + host + '/t/' + topic_id;
   }
 
+  function get_absolute_url_base(url) {
+    var tmp = document.createElement('a'),
+      host,
+      protocol;
+
+    tmp.href = url;
+    host = tmp.hostname;
+    protocol = tmp.protocol;
+
+    return protocol + '//' + host;
+  }
+
   function slug(str) {
     return str
       .toLowerCase()
@@ -305,5 +318,13 @@ jQuery(document).ready(function($) {
     var $message_box = $('#discourse-message');
     $message_box.addClass(css_class);
     $message_box.html(message);
+  }
+
+  function fix_avatar_link(avatar_link, abs_url_base) {
+    var fixed = avatar_link.replace(/\{size\}/, 45);
+    if (fixed.match(/^\//)) {
+      fixed = abs_url_base + fixed;
+    }
+    return fixed;
   }
 });

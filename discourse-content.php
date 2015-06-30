@@ -25,12 +25,12 @@ class Testeleven_Discourse_Content {
 
   // Include admin stylesheet
   public function admin_styles() {
-    wp_enqueue_style('admin-styles', plugins_url('admin_styles.css', __FILE__));
+    wp_enqueue_style('admin-styles', plugins_url('admin-styles.css', __FILE__));
   }
 
   // Include public styles
   public function discourse_topic_styles() {
-    wp_enqueue_style('discourse-styles', plugins_url('discourse_topic_styles.css', __FILE__));
+    wp_enqueue_style('discourse-styles', plugins_url('discourse-topic-styles.css', __FILE__));
   }
 
   // Include plugin javascript
