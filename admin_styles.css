@@ -6,16 +6,25 @@
     clear: both;
     height: 0;
 }
-* html .clearfix             { zoom: 1; } /* IE6 */
-*:first-child+html .clearfix { zoom: 1; } /* IE7 */
+/** html .clearfix             { zoom: 1; } *//* IE6 */
+/**:first-child+html .clearfix { zoom: 1; } *//* IE7 */
+
+label[for="discourse-url"] {
+    margin-left: 8px;
+}
 
 #discourse-url {
-    width: 100%;
+    width: calc(100% - 16px);
     padding: 7px 10px;
-    margin-bottom: 8px;
+    margin: 0 8px 8px 8px;
+}
+
+#get-topic {
+    margin-left: 8px;
 }
 
 #discourse-message {
+    margin: 8px;
     padding: 8px;
 }
 
@@ -87,7 +96,7 @@
     bottom: 0;
     left: 0;
     right: 0;
-    background-color: rgba(255, 255, 255, 0.3);
+    background-color: rgba(255, 255, 255, 0.8);
     z-index: 9999;
     background-image: url(loader.GIF);
     background-repeat: no-repeat;
