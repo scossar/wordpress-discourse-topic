@@ -83,18 +83,13 @@ class Testeleven_Discourse_Content {
       'post_title' => $_POST['title'],
       'post_status' => $_POST['post_status'],
       'post_type' => $_POST['post_type']
-//      'post_category' => $_POST['post_category']
     );
     $new_post_ID = wp_insert_post($post_data);
 
-    // Send a response back to the javascript handler
-//    $response = array(
-//      'status' => '200',
-//      'message' => 'OK',
-//      'new_post_ID' => $new_post_ID
-//    );
+    // give the post an order meta-data entry
+    $order = $_POST['order'];
+    add_metadata('post', $new_post_ID, 'discourse_order', $order);
 
-//    echo $response;
     wp_die();
   }
 }

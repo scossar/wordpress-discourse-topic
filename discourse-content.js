@@ -134,7 +134,7 @@ jQuery(document).ready(function($) {
             '<div class="post-meta">' +
             '<div class="avatar"><img src="' + avatar_link + '" alt="missing avatar" width="45"/></div>' +
             'Posted by <span class="username">' + post['username'] +
-            '<span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
+            '</span> on <span class="post-date">' + parse_date(post['created_at']) + '</span>' +
             '</div>' + // .post-meta
             post['cooked'] + // post content
             '</div>' + // .discourse-post
@@ -197,6 +197,7 @@ jQuery(document).ready(function($) {
           topic = {
             'title': $title.val() + ' (page ' + (page_num + 1) + ')',
             'slug': slug($title.val() + ' ' + page_num),
+            'order': page_num,
             'author_id': 1,
             'content': content,
             'post_status': 'publish',
@@ -327,4 +328,5 @@ jQuery(document).ready(function($) {
     }
     return fixed;
   }
+
 });

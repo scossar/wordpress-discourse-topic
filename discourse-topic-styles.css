@@ -1,10 +1,10 @@
-.discourse-topic .post-meta {
+.discourse-post .post-meta {
     font-size: 12px;
     margin-bottom: 4px;
 }
 
-.discourse-topic .username,
-.discourse-topic .post-date {
+.discourse-post .username,
+.discourse-post .post-date {
     font-weight: bold;
 }
 
