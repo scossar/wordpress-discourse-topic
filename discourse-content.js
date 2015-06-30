@@ -11,74 +11,72 @@ jQuery(document).ready(function($) {
 
     if (! url) {
       warning('You must supply the URL to a Discourse forum topic.');
-    }
+    } else if (! is_url(url) || (! get_topic_id(url))) {
 
-    if (! is_url(url) && (! get_topic_id(url))) {
       warning('The supplied URL is not a Discourse topic URL. ' +
       'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
+
     } else {
       // It's looking good, set the url values and try making a request.
       base_url = get_base_url(url);
       initial_request_url = base_url + '.json';
       post_request_url = base_url + '/' + 'posts.json';
       $('.loading').addClass('discourse-loading');
-    }
 
-    // If there has been an error, clear the error message when the user inputs a new URL.
-    clear_message_on_click($discourse_url);
+      // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
+      // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
+      // get_json() method which is used to retrieve the json data.
+      var data = {
+        'action': 'get_json',
+        'url': initial_request_url
+      };
 
-    // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
-    // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
-    // get_json() method which is used to retrieve the json data.
-    var data = {
-      'action': 'get_json',
-      'url': initial_request_url
-    };
+      // Use the initial request to gather data about the topic.
+      $.getJSON(ajaxurl, data, function (response) {
 
-    // Use the initial request to gather data about the topic.
-    $.getJSON(ajaxurl, data, function (response) {
+        console.log(response);
 
-      console.log(response);
-
-      var chunk_size,
+        var chunk_size,
           stream,
           $target = $('.topic-posts'); // This is where we are going to output the topic posts.
 
-      // If there is no chunk_size property on the response object then we have
-      // some sort of error. Remove the loading spinner and try again.
-      try {
-        chunk_size = response['chunk_size'];
-      } catch (err) {
+        // If there is no chunk_size property on the response object then we have
+        // some sort of error. Remove the loading spinner and try again.
+        try {
+          chunk_size = response['chunk_size'];
+        } catch (err) {
+          $('.loading').removeClass('discourse-loading');
+          warning('There was an error returned from the server. ' +
+          'It is possible that you have incorrectly entered the forum URL. The server ' +
+          'may also be undergoing maintenance. If the problem persists, please contact ' +
+          'the forum administrator.');
+        }
+
+        // The array of post_ids that make up the topic. The first chunk_size of
+        // them will be used in the initial request. They are removed from the array
+        // here.  On each call to add_meta_box_post_content() an attempt is made to
+        // populate the next_request_ids array by calling splice(0, chunk_size) on the
+        // post_stream array. If this is successful ( tested by calling next_request_ids.length)
+        // add_meta_box_post_content() is called recursively.
+        stream = response['post_stream']['stream'].slice(chunk_size);
+
+        // Set the title in the editor
+        set_title(response);
+
+        // Clear the target in case the form is submitted more than once.
+        $target.html('');
+
+        add_meta_box_post_content(response, stream, $target, chunk_size);
+      }).fail(function(response) {
         $('.loading').removeClass('discourse-loading');
-        warning('There was an error returned from the server. ' +
+        warning('There was no response returned from the server. ' +
         'It is possible that you have incorrectly entered the forum URL. The server ' +
         'may also be undergoing maintenance. If the problem persists, please contact ' +
         'the forum administrator.');
-      }
+      });
+    }
 
-      // The array of post_ids that make up the topic. The first chunk_size of
-      // them will be used in the initial request. They are removed from the array
-      // here.  On each call to add_meta_box_post_content() an attempt is made to
-      // populate the next_request_ids array by calling splice(0, chunk_size) on the
-      // post_stream array. If this is successful ( tested by calling next_request_ids.length)
-      // add_meta_box_post_content() is called recursively.
-      stream = response['post_stream']['stream'].slice(chunk_size);
-
-      // Set the title in the editor
-      set_title(response);
-
-      // Clear the target in case the form is submitted more than once.
-      $target.html('');
-
-      add_meta_box_post_content(response, stream, $target, chunk_size);
-    }).fail(function(response) {
-      $('.loading').removeClass('discourse-loading');
-      warning('There was no response returned from the server. ' +
-      'It is possible that you have incorrectly entered the forum URL. The server ' +
-      'may also be undergoing maintenance. If the problem persists, please contact ' +
-      'the forum administrator.');
-    });
-
+    // Add posts from forum to admin meta_box.
     function add_meta_box_post_content(response, post_stream, target, chunk_size) {
       var posts = response['post_stream']['posts'],
           next_request_ids = post_stream.splice(0, chunk_size),
@@ -223,6 +221,9 @@ jQuery(document).ready(function($) {
     $('.post-select-box').attr('checked', true);
     e.preventDefault();
   });
+
+  // If there has been an error, clear the error message when the user inputs a new URL.
+  clear_message_on_click($('#discourse-url'));
 
   // Show spinner and disable page while posts are loading.
 
