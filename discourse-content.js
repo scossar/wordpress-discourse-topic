@@ -36,18 +36,22 @@ jQuery(document).ready(function($) {
     // Use the initial request to gather data about the topic.
     $.getJSON(ajaxurl, data, function (response) {
 
+      var chunk_size = response['chunk_size'],
+      // The array of post_ids that make up the topic. The first chunk_size of
+      // them will be used in the initial request. They are removed from the array
+      // here.  On each call to add_meta_box_post_content() an attempt is made to
+      // populate the next_request_ids array by calling splice(0, chunk_size) on the
+      // post_stream array. If this is successful ( tested by calling next_request_ids.length)
+      // add_meta_box_post_content() is called recursively.
+          stream = response['post_stream']['stream'].slice(chunk_size), // The array of post_ids in the topic.
+          $target = $('.topic-posts'); // This is where we are going to output the topic posts.
+
       if (! response) { // This needs better (more descriptive) error checking.
         warning('There was no response returned from the server. ' +
         'It is possible that you have incorrectly entered the forum URL. The server ' +
         'may also be undergoing maintenance. If the problem persists, please contact ' +
         'the forum administrator.');
       }
-
-      var chunk_size = response['chunk_size'],
-          stream = response['post_stream']['stream'].slice(chunk_size), // The array of post_ids in the topic.
-          $target = $('.topic-posts'); // This is where we are going to output the topic posts.
-
-      console.log('chunk-size: ', chunk_size);
 
       // Set the title in the editor
       set_title(response);
@@ -59,10 +63,7 @@ jQuery(document).ready(function($) {
     });
 
     function add_meta_box_post_content(response, post_stream, target, chunk_size) {
-      // On the initial request posts are in the post_stream object. On subsequent requests, posts are in the 'posts' object.
-      //var posts = (response.hasOwnProperty('post_stream')) ? response['post_stream']['posts'] : response['posts'],
       var posts = response['post_stream']['posts'],
-          output = [],
           next_request_ids = post_stream.splice(0, chunk_size),
           next_request_params = '?',
           next_request_url;
@@ -88,39 +89,6 @@ jQuery(document).ready(function($) {
       $.getJSON(ajaxurl, data, function(response) {
         add_meta_box_post_content(response, post_stream, target, chunk_size);
       });
-
-
-      // If there are still posts in post_stream, use them to construct a url. Then make the
-      // ajax call and recursively call the add_meta_box_content() function.
-/*      if (post_stream.length) {
-        // Get the next chunk of posts.
-        if (post_stream.length > chunk_size) {
-          current_request_ids = post_stream.slice(0, chunk_size);
-        } else {
-          current_request_ids = post_stream;
-        }
-
-        // Construct the url
-        current_request_ids.forEach(function(id, index) {
-        //  post_request_params += 'post_ids=[' + selected_ids + ']';
-          //post_request_url += 'post_ids%5B%5D=' + id;
-          post_request_params += 'post_ids[]=' + id;
-          if (index < current_request_ids.length - 1) {
-            post_request_params += '&';
-          }
-        });
-        post_request_url += encodeURI(post_request_params);
-        //console.log("request", post_request_url);
-
-        data = {
-          'action': 'get_json',
-          'url': post_request_url
-        };
-
-        $.getJSON(ajaxurl, data, function(response) {
-          add_meta_box_post_content(response, post_stream, target, chunk_size);
-        });
-      } */
 
       function render(posts) {
         var output = [];
@@ -158,7 +126,6 @@ jQuery(document).ready(function($) {
         output.join('');
         return output;
       } // End of render()
-
 
     } // End of add_meta_box_post_content() */
 
