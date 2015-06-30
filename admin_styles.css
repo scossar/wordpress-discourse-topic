@@ -15,9 +15,14 @@
     margin-bottom: 8px;
 }
 
-#discourse-url.discourse-error {
+#discourse-message {
+    padding: 8px;
+}
+
+#discourse-message.warning {
     color: #fff;
     background: orange;
+    font-weight: bold;
 }
 
 .topic-posts {
