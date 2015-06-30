@@ -13,9 +13,11 @@ jQuery(document).ready(function($) {
       initial_request_url = base_url + '.json';
       post_request_url = base_url + '/' + 'posts.json?';
     } else {
-      $('#discourse-message').addClass('warning');
-      $('#discourse-message').html('\'' + url + '\'' + ' is not a Discourse topic URL. ' +
-      'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
+      warning('The supplied URL is not a Discourse topic URL. ' +
+        'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
+      //$('#discourse-message').addClass('warning');
+      //$('#discourse-message').html('\'' + url + '\'' + ' is not a Discourse topic URL. ' +
+      //'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
     }
 
     // If there has been an error, clear the error message when the user inputs a new URL.
@@ -33,12 +35,16 @@ jQuery(document).ready(function($) {
     $.getJSON(ajaxurl, data, function (response) {
 
       if (! response) { // This needs better (more descriptive) error checking.
-        $('#discourse-message').addClass('warning');
-        $('#discourse-message').html('There was no response returned from the server. ' +
-          'It is possible that you have incorrectly entered the forum URL. The server ' +
-          'may also be undergoing maintenance. If the problem persists, please contact ' +
-          'the forum administrator.');
-        return;
+        warning('There was no response returned from the server. ' +
+        'It is possible that you have incorrectly entered the forum URL. The server ' +
+        'may also be undergoing maintenance. If the problem persists, please contact ' +
+        'the forum administrator.');
+        //$('#discourse-message').addClass('warning');
+        //$('#discourse-message').html('There was no response returned from the server. ' +
+        //  'It is possible that you have incorrectly entered the forum URL. The server ' +
+        //  'may also be undergoing maintenance. If the problem persists, please contact ' +
+        //  'the forum administrator.');
+        //return;
       }
 
       var chunk_size = response['chunk_size'],
@@ -133,9 +139,12 @@ jQuery(document).ready(function($) {
   $('#discourse-fetch').on('click', '.load-posts', function(e) {
     var output = '',
         num_pages,
-        selected_topic_posts = [];
-    var page_num, post_num, topic = [], content;
-    var num_posts_selected;
+        selected_topic_posts = [],
+        $title = $('#title'),
+        page_num,
+        topic = [],
+        content,
+        num_posts_selected;
 
     $.each($('.post-select'), function() {
       if ($(this).find('.post-select-box').prop('checked'));
@@ -158,14 +167,14 @@ jQuery(document).ready(function($) {
       $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
       // Create an array of pages
       output = selected_topic_posts.splice(0, 30).join('');
-      $('#content').html('<h2>Menu for: ' + $('#title').val() + '</h2>');
+      $('#content').html('<h2>Menu for: ' + $title.val() + '</h2>');
 
       for (page_num = 0; page_num <= num_pages; page_num++) {
         content = selected_topic_posts.splice(0, 30).join('');
 
         topic = {
-          'title': $('#title').val() + ' (page ' + (page_num + 1) + ')',
-          'slug': slug($('#title').val() + ' ' + page_num),
+          'title': $title.val() + ' (page ' + (page_num + 1) + ')',
+          'slug': slug($title.val() + ' ' + page_num),
           'author_id': 1,
           'content': content,
           'post_status': 'publish',
@@ -258,5 +267,12 @@ jQuery(document).ready(function($) {
   function parse_date(date_string) {
     var d = new Date(date_string);
     return d.toLocaleDateString();
+  }
+
+  function warning(message) {
+    var $message_box = $('#discourse-message');
+    $message_box.addClass('warning');
+    $message_box.html(message);
+    return;
   }
 });
