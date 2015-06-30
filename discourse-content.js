@@ -23,7 +23,7 @@ jQuery(document).ready(function($) {
     clear_message_on_click($discourse_url);
 
     // add .discourse-loading to the body
-    $('body').addClass('discourse-loading');
+    $('.loading').addClass('discourse-loading');
 
     // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
     // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
@@ -78,17 +78,18 @@ jQuery(document).ready(function($) {
           }
         });
         next_request_url = post_request_url + encodeURI(next_request_params);
-        console.log(next_request_url);
+
+        data = {
+          'action': 'get_json',
+          'url': next_request_url
+        };
+
+        $.getJSON(ajaxurl, data, function(response) {
+          add_meta_box_post_content(response, post_stream, target, chunk_size);
+        });
+      } else { // The last request is finished. Remove .discourse-loading from the body tag
+        $('.loading').removeClass('discourse-loading');
       }
-
-      data = {
-        'action': 'get_json',
-        'url': next_request_url
-      };
-
-      $.getJSON(ajaxurl, data, function(response) {
-        add_meta_box_post_content(response, post_stream, target, chunk_size);
-      });
 
       function render(posts) {
         var output = [];
@@ -185,7 +186,7 @@ jQuery(document).ready(function($) {
           };
 
           $.post(ajaxurl, topic, function(response) {
-            console.log('we got a response', response);
+            //console.log('we got a response', response);
           });
         }
 
@@ -193,7 +194,7 @@ jQuery(document).ready(function($) {
       });
     }
     e.preventDefault();
-  });
+  }); // End of load_posts
 
   //
   $discourse_fetch.on('click', '.unselect-all-posts', function(e) {
@@ -205,6 +206,9 @@ jQuery(document).ready(function($) {
     $('.post-select-box').attr('checked', true);
     e.preventDefault();
   });
+
+  // Show spinner and disable page while posts are loading.
+
 
   // Utility functions
 

@@ -60,6 +60,7 @@ class Testeleven_Discourse_Content {
   // add_meta_box callback to create the form
   function discourse_meta_box_callback() {?>
     <div id="discourse-message"></div>
+    <div class="loading"></div>
     <label for="discourse-url">URL:</label>
     <input type="text" id="discourse-url" name="discourse-url"/>
     <button id="get-topic">Fetch Discourse Topic</button>
