@@ -1,13 +1,15 @@
 jQuery(document).ready(function($) {
+  var $discourse_fetch = $('#discourse-fetch');
+
   $('#get-topic').click(function (e) {
-    // Outer scope variables
-    var url = $('#discourse-url').val(),
-        topic_id,
+
+    var $discourse_url = $('#discourse-url'),
+        url = $discourse_url.val(),
         base_url,
         initial_request_url,
         post_request_url;
 
-    if (is_url(url) && (topic_id = get_topic_id(url))) {
+    if (is_url(url) && (get_topic_id(url))) {
       // Create your urls here
       base_url = get_base_url(url);
       initial_request_url = base_url + '.json';
@@ -15,13 +17,10 @@ jQuery(document).ready(function($) {
     } else {
       warning('The supplied URL is not a Discourse topic URL. ' +
         'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
-      //$('#discourse-message').addClass('warning');
-      //$('#discourse-message').html('\'' + url + '\'' + ' is not a Discourse topic URL. ' +
-      //'Please copy and paste a valid URL from a Discourse forum topic into the \'URL\' input.');
     }
 
     // If there has been an error, clear the error message when the user inputs a new URL.
-    clear_message_on_click($('#discourse-url'));
+    clear_message_on_click($discourse_url);
 
     // Data object for the WordPress ajax call. The 'action' property is used to create the WordPress action
     // 'wp_ajax_'{action name} that can be used to call a php function on the server. Here it is calling the
@@ -39,12 +38,6 @@ jQuery(document).ready(function($) {
         'It is possible that you have incorrectly entered the forum URL. The server ' +
         'may also be undergoing maintenance. If the problem persists, please contact ' +
         'the forum administrator.');
-        //$('#discourse-message').addClass('warning');
-        //$('#discourse-message').html('There was no response returned from the server. ' +
-        //  'It is possible that you have incorrectly entered the forum URL. The server ' +
-        //  'may also be undergoing maintenance. If the problem persists, please contact ' +
-        //  'the forum administrator.');
-        //return;
       }
 
       var chunk_size = response['chunk_size'],
@@ -136,7 +129,7 @@ jQuery(document).ready(function($) {
   });
 
   // Load posts in the editor
-  $('#discourse-fetch').on('click', '.load-posts', function(e) {
+  $discourse_fetch.on('click', '.load-posts', function(e) {
     var output = '',
         num_pages,
         selected_topic_posts = [],
@@ -147,8 +140,9 @@ jQuery(document).ready(function($) {
         num_posts_selected;
 
     $.each($('.post-select'), function() {
-      if ($(this).find('.post-select-box').prop('checked'));
-      selected_topic_posts.push($(this).find('.topic-post').html());
+      if ($(this).find('.post-select-box').prop('checked')) {
+        selected_topic_posts.push($(this).find('.topic-post').html());
+      }
     });
 
     num_posts_selected = selected_topic_posts.length;
@@ -191,7 +185,7 @@ jQuery(document).ready(function($) {
   });
 
   // Toggle select/un-select all posts
-  $('#discourse-fetch').on('change', '.post-select-toggle', function() {
+  $discourse_fetch.on('change', '.post-select-toggle', function() {
     var $post_select_box = $('.post-select-box');
     if ($(this).hasClass('unselect')) {
       $(this).toggleClass('unselect select');
@@ -273,6 +267,5 @@ jQuery(document).ready(function($) {
     var $message_box = $('#discourse-message');
     $message_box.addClass('warning');
     $message_box.html(message);
-    return;
   }
 });
