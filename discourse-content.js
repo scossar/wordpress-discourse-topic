@@ -61,8 +61,10 @@ jQuery(document).ready(function($) {
 
       output.push(
         '<div class="discourse-topic-controls clearfix">' +
-        '<label for="post-select-toggle" class="post-select-label">Unselect all Posts</label>' +
-        '<input type="checkbox" class="post-select-toggle unselect" name="post-select-toggle" />' +
+        //'<label for="post-select-toggle" class="post-select-label">Unselect all Posts</label>' +
+        '<button class="unselect-all-posts">Unselect all Posts</button>' +
+        '<button class="select-all-posts">Select all Posts</button>' +
+        //'<input type="checkbox" class="post-select-toggle unselect" name="post-select-toggle" />' +
         '<button class="load-posts">Load Posts in Editor</button>' +
         '</div>'
       );
@@ -146,7 +148,7 @@ jQuery(document).ready(function($) {
     });
 
     num_posts_selected = selected_topic_posts.length;
-    if (num_posts_selected < 40) {
+    if (num_posts_selected < 45) {
 
       output += '<section class="discourse-topic">';
       selected_topic_posts.forEach(function(post_content) {
@@ -156,15 +158,45 @@ jQuery(document).ready(function($) {
       output += '</section>';
       $('#content').html(output);
 
-    } else { // There are more than 20 posts. We will paginate at 20 posts/page.
+    } else { // There are more than 40 posts. We will paginate at 40 posts/page.
       num_pages = Math.ceil(num_posts_selected / 40.0);
-      $('#discourse-message').html('<div class="warn">You have selected ' + num_posts_selected + ' posts in this topic. For improved readability, those posts will be published over ' + num_pages + ' pages.</div>');
-      // Create an array of pages
-      output = selected_topic_posts.splice(0, 30).join('');
-      $('#content').html('<h2>Menu for: ' + $title.val() + '</h2>');
 
-      for (page_num = 0; page_num <= num_pages; page_num++) {
-        content = selected_topic_posts.splice(0, 30).join('');
+      notice('<div class="warn">You have selected ' +
+        num_posts_selected + ' posts in this topic. For improved readability, ' +
+        'those posts will be published over ' + num_pages + ' pages.</div>' +
+        '<div class="controls"><button class="publish-topic">' + 'Create Topic Pages?' +
+        '</button></div>', 'notice');
+
+      $discourse_fetch.on('click', '.publish-topic', function(e) {
+        output = selected_topic_posts.splice(0, 40).join('');
+        $('#content').html(output);
+
+        for (page_num = 1; page_num < num_pages; page_num++) {
+          content = selected_topic_posts.splice(0, 40).join('');
+
+          topic = {
+            'title': $title.val() + ' (page ' + (page_num + 1) + ')',
+            'slug': slug($title.val() + ' ' + page_num),
+            'author_id': 1,
+            'content': content,
+            'post_status': 'publish',
+            'post_type': 'post',
+            'action': 'create_post'
+          };
+
+          $.post(ajaxurl, topic, function(response) {
+            console.log('we got a response', response);
+          });
+        }
+
+        e.preventDefault();
+      });
+      //Add the first 40 posts to the current page.
+      //output = selected_topic_posts.splice(0, 40).join('');
+      //$('#content').html(output);
+      //
+/*      for (page_num = 1; page_num <= num_pages; page_num++) {
+        content = selected_topic_posts.splice(0, 40).join('');
 
         topic = {
           'title': $title.val() + ' (page ' + (page_num + 1) + ')',
@@ -179,21 +211,20 @@ jQuery(document).ready(function($) {
         $.post(ajaxurl, topic, function(response) {
           console.log('we got a response', response);
         });
-      }
+      } */
     }
     e.preventDefault();
   });
 
-  // Toggle select/un-select all posts
-  $discourse_fetch.on('change', '.post-select-toggle', function() {
-    var $post_select_box = $('.post-select-box');
-    if ($(this).hasClass('unselect')) {
-      $(this).toggleClass('unselect select');
-      $post_select_box.attr('checked', false);
-    } else {
-      $(this).toggleClass('select unselect');
-      $post_select_box.attr('checked', true);
-    }
+  //
+  $discourse_fetch.on('click', '.unselect-all-posts', function(e) {
+    $('.post-select-box').attr('checked', false);
+    e.preventDefault();
+  });
+
+  $discourse_fetch.on('click', '.select-all-posts', function(e) {
+    $('.post-select-box').attr('checked', true);
+    e.preventDefault();
   });
 
   // Utility functions
@@ -266,6 +297,12 @@ jQuery(document).ready(function($) {
   function warning(message) {
     var $message_box = $('#discourse-message');
     $message_box.addClass('warning');
+    $message_box.html(message);
+  }
+
+  function notice(message, css_class) {
+    var $message_box = $('#discourse-message');
+    $message_box.addClass(css_class);
     $message_box.html(message);
   }
 });
