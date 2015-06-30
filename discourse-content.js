@@ -134,8 +134,7 @@ jQuery(document).ready(function($) {
 
   // Load posts in the editor
   $discourse_fetch.on('click', '.load-posts', function(e) {
-    var output = '',
-        num_pages,
+    var num_pages,
         selected_topic_posts = [],
         $title = $('#title'),
         page_num,
@@ -152,29 +151,26 @@ jQuery(document).ready(function($) {
 
     num_posts_selected = selected_topic_posts.length;
 
-    if (num_posts_selected < 20) {
+    if (num_posts_selected <= 20) {
 
-      //output += '<section class="discourse-topic">';
-      //selected_topic_posts.forEach(function(post_content) {
-      //  output += post_content;
-      //});
-
-      //output += '</section>';
       $('#content').html(selected_topic_posts.join(''));
 
-    } else { // There are more than 40 posts. We will paginate at 40 posts/page.
+    } else { // There are more than 20 posts. Paginate at 20 posts/page.
       num_pages = Math.ceil(num_posts_selected / 20);
 
       notice('<div class="warn">You have selected ' +
         num_posts_selected + ' posts in this topic. For improved readability, ' +
-        'those posts will be published over ' + num_pages + ' pages.</div>' +
+        'those posts will be published over ' + num_pages + ' pages. Click the ' +
+        'preview button to see the first page of posts.' +
         '<div class="controls"><button class="publish-topic">' + 'Create Topic Pages?' +
         '</button></div>', 'notice');
 
-      $discourse_fetch.on('click', '.publish-topic', function(e) {
-        output = selected_topic_posts.splice(0, 20).join('');
-        $('#content').html(output);
+      // Load the first 20 posts in the editor.
+      $('#content').html(selected_topic_posts.splice(0, 20).join(''));
 
+      $discourse_fetch.on('click', '.publish-topic', function(e) {
+
+        // The first page has been created. Now create the remaining pages.
         for (page_num = 1; page_num < num_pages; page_num++) {
           content = selected_topic_posts.splice(0, 20).join('');
 
