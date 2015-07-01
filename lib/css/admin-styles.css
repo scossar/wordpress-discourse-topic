@@ -100,3 +100,7 @@ label[for="discourse-url"] {
     background-repeat: no-repeat;
     background-position: center top;
 }
+
+#category-adder {
+    display: none;
+}
