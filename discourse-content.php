@@ -1,10 +1,13 @@
 <?php
 /**
- * Plugin Name: Discourse Content
+ * Plugin Name: WP Discourse Topic
  * Plugin Author: scossar
+ * Description: Saves a Discourse Topic as a WordPress post
+ *
+ * Version: 0.0.1
  */
 
-class Testeleven_Discourse_Content {
+class WP_Discourse_Topic {
   protected static $instance = null;
 
   public static function get_instance() {
@@ -99,5 +102,5 @@ class Testeleven_Discourse_Content {
   }
 }
 
-Testeleven_Discourse_Content::get_instance();
+WP_Discourse_Topic::get_instance();
 
