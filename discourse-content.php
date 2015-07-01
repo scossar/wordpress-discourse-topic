@@ -77,14 +77,19 @@ class Testeleven_Discourse_Content {
 
   // Handle the ajax request from discourse-content.js
   function create_post() {
+    $cat_ids = $_POST['category'];
+
+
     $post_data = array(
       'post_content' => $_POST['content'],
       'post_name' => $_POST['slug'],
       'post_title' => $_POST['title'],
       'post_status' => $_POST['post_status'],
-      'post_type' => $_POST['post_type']
+      'post_type' => $_POST['post_type'],
     );
     $new_post_ID = wp_insert_post($post_data);
+
+    wp_set_post_categories($new_post_ID, $cat_ids);
 
     // give the post an order meta-data entry
     $order = $_POST['order'];

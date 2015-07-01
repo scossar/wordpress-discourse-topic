@@ -1,5 +1,6 @@
 jQuery(document).ready(function($) {
-  var $discourse_fetch = $('#discourse-fetch');
+  var $discourse_fetch = $('#discourse-fetch'),
+      discourse_category;
 
   $('#get-topic').click(function (e) {
 
@@ -157,11 +158,13 @@ jQuery(document).ready(function($) {
     var num_pages,
         selected_topic_posts = [],
         $title = $('#title'),
+        categories = get_categories(),
         page_num,
         topic = [],
         content,
         num_posts_selected;
 
+    console.log(categories);
     // Load all the content in an array
     $.each($('.post-select'), function() {
       if ($(this).find('.post-select-box').prop('checked')) {
@@ -202,11 +205,12 @@ jQuery(document).ready(function($) {
             'content': content,
             'post_status': 'publish',
             'post_type': 'post',
+            'category': [6, 7],
             'action': 'create_post'
           };
 
           $.post(ajaxurl, topic, function(response) {
-            //console.log('we got a response', response);
+            console.log('we got a response', response);
           });
         }
 
@@ -329,4 +333,16 @@ jQuery(document).ready(function($) {
     return fixed;
   }
 
+  function get_categories() {
+    var categories = '';
+    $.each($('#categorychecklist').find('input:checkbox'), function() {
+      if ($(this).prop('checked')) {
+        categories += $(this).val() + ' ';
+      }
+    });
+    return categories;
+  }
+
 });
+
+
