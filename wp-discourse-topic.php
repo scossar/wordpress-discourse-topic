@@ -41,7 +41,7 @@ class WP_Discourse_Topic {
     if ($hook != 'post.php' && $hook != 'post-new.php') {
       return;
     }
-    wp_enqueue_script('discourse-content', plugins_url('lib/js/discourse-content.js', __FILE__));
+    wp_enqueue_script('discourse-content', plugins_url('lib/js/wp-discourse-topic.js', __FILE__));
     // Values can be padded to 'discourse-content.js here and accessed there as properties
     // of 'ajax_object' ex. ajax_object.example_value // 'this is a test'
     wp_localize_script('discourse-content', 'ajax_object',
@@ -89,10 +89,9 @@ class WP_Discourse_Topic {
       'post_title' => $_POST['title'],
       'post_status' => $_POST['post_status'],
       'post_type' => $_POST['post_type'],
+      'post_category' => $_POST['category']
     );
     $new_post_ID = wp_insert_post($post_data);
-
-    wp_set_post_categories($new_post_ID, $cat_ids);
 
     // give the post an order meta-data entry
     $order = $_POST['order'];
