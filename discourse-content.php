@@ -25,12 +25,12 @@ class Testeleven_Discourse_Content {
 
   // Include admin stylesheet
   public function admin_styles() {
-    wp_enqueue_style('admin-styles', plugins_url('admin-styles.css', __FILE__));
+    wp_enqueue_style('admin-styles', plugins_url('lib/css/admin-styles.css', __FILE__));
   }
 
   // Include public styles
   public function discourse_topic_styles() {
-    wp_enqueue_style('discourse-styles', plugins_url('discourse-topic-styles.css', __FILE__));
+    wp_enqueue_style('discourse-styles', plugins_url('lib/css/discourse-topic-styles.css', __FILE__));
   }
 
   // Include plugin javascript
@@ -38,8 +38,8 @@ class Testeleven_Discourse_Content {
     if ($hook != 'post.php' && $hook != 'post-new.php') {
       return;
     }
-    wp_enqueue_script('discourse-content', plugins_url('discourse-content.js', __FILE__));
-    // We can pass values to 'discourse-content.js here and access them as properties
+    wp_enqueue_script('discourse-content', plugins_url('lib/js/discourse-content.js', __FILE__));
+    // Values can be padded to 'discourse-content.js here and accessed there as properties
     // of 'ajax_object' ex. ajax_object.example_value // 'this is a test'
     wp_localize_script('discourse-content', 'ajax_object',
       array('example_value' => 'this is a test'));
