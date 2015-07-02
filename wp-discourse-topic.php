@@ -80,8 +80,6 @@ class WP_Discourse_Topic {
 
   // Handle the ajax request from discourse-content.js
   function create_post() {
-    $cat_ids = $_POST['category'];
-
 
     $post_data = array(
       'post_content' => $_POST['content'],
@@ -89,13 +87,14 @@ class WP_Discourse_Topic {
       'post_title' => $_POST['title'],
       'post_status' => $_POST['post_status'],
       'post_type' => $_POST['post_type'],
-      'post_category' => $_POST['category']
     );
-    $new_post_ID = wp_insert_post($post_data);
 
-    // give the post an order meta-data entry
-    $order = $_POST['order'];
-    add_metadata('post', $new_post_ID, 'discourse_order', $order);
+    if (array_key_exists('category', $_POST)) {
+      $post_data['post_category'] = $_POST['category'];
+    }
+
+    $new_post_ID = wp_insert_post($post_data);
+    add_metadata('post', $new_post_ID, 'discourse_order', $_POST['order']);
 
     wp_die();
   }
